@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Trophy, Users, Calendar, TrendingUp } from "lucide-react"
+import { Trophy, Users, Calendar, TrendingUp, Clock, MapPin } from "lucide-react"
 
 export function DashboardOverview() {
   const stats = [
@@ -49,6 +49,49 @@ export function DashboardOverview() {
     { name: "Cristhian Vidal", points: 218, matches: 12, wins: 8 },
   ]
 
+  const upcomingMatches = [
+    {
+      id: 1,
+      player1: "Daniel Vera",
+      player2: "Diego Amaya",
+      date: "2024-01-15",
+      time: "18:00",
+      venue: "Amador Donoso",
+      court: "Cancha 1",
+      status: "Programado"
+    },
+    {
+      id: 2,
+      player1: "Roberto Medina",
+      player2: "Danilo Milla",
+      date: "2024-01-15",
+      time: "19:30",
+      venue: "Laurita Vicuña",
+      court: "Cancha 2",
+      status: "Programado"
+    },
+    {
+      id: 3,
+      player1: "Ignacio Cid",
+      player2: "Sebastian Sepulveda",
+      date: "2024-01-16",
+      time: "17:00",
+      venue: "Amador Donoso",
+      court: "Cancha 1",
+      status: "Programado"
+    },
+    {
+      id: 4,
+      player1: "Franco Maura",
+      player2: "Eduardo Farias",
+      date: "2024-01-16",
+      time: "20:00",
+      venue: "Laurita Vicuña",
+      court: "Cancha A",
+      status: "Programado"
+    }
+  ]
+
   return (
     <div className="space-y-6">
       <div>
@@ -73,7 +116,7 @@ export function DashboardOverview() {
         ))}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {/* Recent Matches */}
         <Card>
           <CardHeader>
@@ -93,6 +136,46 @@ export function DashboardOverview() {
                   <div className="text-right space-y-1">
                     <Badge variant={match.status === "En juego" ? "default" : "secondary"}>{match.status}</Badge>
                     <p className="text-xs text-muted-foreground">{match.date}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Upcoming Matches */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Próximos Partidos</CardTitle>
+            <CardDescription>Partidos programados para los próximos días</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {upcomingMatches.map((match) => (
+                <div key={match.id} className="p-3 border rounded-lg bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">
+                      {match.player1} vs {match.player2}
+                    </p>
+                    <div className="flex items-center space-x-4 text-xs text-muted-foreground">
+                      <div className="flex items-center">
+                        <Calendar className="h-3 w-3 mr-1" />
+                        {match.date}
+                      </div>
+                      <div className="flex items-center">
+                        <Clock className="h-3 w-3 mr-1" />
+                        {match.time}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center text-xs text-muted-foreground">
+                        <MapPin className="h-3 w-3 mr-1" />
+                        {match.venue} - {match.court}
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        {match.status}
+                      </Badge>
+                    </div>
                   </div>
                 </div>
               ))}
