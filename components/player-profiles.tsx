@@ -5,13 +5,13 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
-import { Search, Plus, Trophy, Phone, Mail } from "lucide-react"
+import { Search, Plus, Trophy, Phone, Mail, User, Calendar, Target, Zap } from "lucide-react"
 import { useState } from "react"
+import Swal from "sweetalert2"
 
 export function PlayerProfiles() {
   const [searchTerm, setSearchTerm] = useState("")
-
-  const players = [
+  const [players, setPlayers] = useState([
     {
       id: 1,
       name: "José Galaz",
@@ -114,7 +114,112 @@ export function PlayerProfiles() {
       playingStyle: "Táctico",
       achievements: ["Mejor Deportividad 2023"],
     },
-  ]
+  ])
+
+  const addPlayer = async () => {
+    const { value: formValues } = await Swal.fire({
+      title: 'Agregar Nuevo Jugador',
+      html: `
+        <div class="space-y-4 text-left">
+          <div>
+            <label class="block text-sm font-medium mb-1">Nombre Completo *</label>
+            <input id="swal-input1" class="swal2-input" placeholder="Ej: Juan Pérez" style="margin: 0; width: 100%; box-sizing: border-box;">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Email *</label>
+            <input id="swal-input2" type="email" class="swal2-input" placeholder="juan.perez@email.com" style="margin: 0; width: 100%; box-sizing: border-box;">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Teléfono *</label>
+            <input id="swal-input3" class="swal2-input" placeholder="+56 9 1234 5678" style="margin: 0; width: 100%; box-sizing: border-box;">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Estilo de Juego</label>
+            <select id="swal-input4" class="swal2-input" style="margin: 0; width: 100%; box-sizing: border-box;">
+              <option value="Agresivo">Agresivo</option>
+              <option value="Defensivo">Defensivo</option>
+              <option value="Completo">Completo</option>
+              <option value="Red">Red</option>
+              <option value="Consistente">Consistente</option>
+              <option value="Táctico">Táctico</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Golpe Favorito</label>
+            <select id="swal-input5" class="swal2-input" style="margin: 0; width: 100%; box-sizing: border-box;">
+              <option value="Derecha">Derecha</option>
+              <option value="Revés">Revés</option>
+              <option value="Saque">Saque</option>
+              <option value="Volea">Volea</option>
+              <option value="Smash">Smash</option>
+              <option value="Drop Shot">Drop Shot</option>
+            </select>
+          </div>
+        </div>
+      `,
+      focusConfirm: false,
+      confirmButtonText: 'Agregar Jugador',
+      cancelButtonText: 'Cancelar',
+      showCancelButton: true,
+      confirmButtonColor: '#10b981',
+      cancelButtonColor: '#ef4444',
+      customClass: {
+        popup: 'swal-wide',
+        htmlContainer: 'swal-html-container'
+      },
+      preConfirm: () => {
+        const name = (document.getElementById('swal-input1') as HTMLInputElement)?.value
+        const email = (document.getElementById('swal-input2') as HTMLInputElement)?.value
+        const phone = (document.getElementById('swal-input3') as HTMLInputElement)?.value
+        const playingStyle = (document.getElementById('swal-input4') as HTMLSelectElement)?.value
+        const favoriteShot = (document.getElementById('swal-input5') as HTMLSelectElement)?.value
+        
+        if (!name || !email || !phone) {
+          Swal.showValidationMessage('Por favor complete todos los campos requeridos')
+          return false
+        }
+        
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(email)) {
+          Swal.showValidationMessage('Por favor ingrese un email válido')
+          return false
+        }
+        
+        return { name, email, phone, playingStyle, favoriteShot }
+      }
+    })
+
+    if (formValues) {
+      const newPlayer = {
+        id: players.length + 1,
+        name: formValues.name,
+        email: formValues.email,
+        phone: formValues.phone,
+        ranking: players.length + 1,
+        points: 0,
+        matches: 0,
+        wins: 0,
+        losses: 0,
+        winRate: 0,
+        joinDate: new Date().toISOString().split('T')[0],
+        lastMatch: '-',
+        favoriteShot: formValues.favoriteShot,
+        playingStyle: formValues.playingStyle,
+        achievements: [],
+      }
+      
+      setPlayers([...players, newPlayer])
+      
+      await Swal.fire({
+        title: '¡Jugador Agregado!',
+        text: `${formValues.name} ha sido agregado exitosamente a la liga.`,
+        icon: 'success',
+        confirmButtonColor: '#10b981',
+        timer: 3000,
+        timerProgressBar: true
+      })
+    }
+  }
 
   const filteredPlayers = players.filter(
     (player) =>
@@ -129,7 +234,7 @@ export function PlayerProfiles() {
           <h2 className="text-3xl font-bold tracking-tight">Perfiles de Jugadores</h2>
           <p className="text-muted-foreground">Información detallada de todos los jugadores de la liga</p>
         </div>
-        <Button>
+        <Button onClick={addPlayer}>
           <Plus className="h-4 w-4 mr-2" />
           Agregar Jugador
         </Button>

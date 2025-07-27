@@ -3,9 +3,11 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar, Clock, MapPin, Plus } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useState } from "react"
+import Swal from "sweetalert2"
 
 export function MatchesView() {
-  const upcomingMatches = [
+  const [upcomingMatches, setUpcomingMatches] = useState([
     {
       id: 1,
       player1: "Daniel Vera",
@@ -13,6 +15,7 @@ export function MatchesView() {
       date: "2024-01-15",
       time: "18:00",
       court: "Cancha 1",
+      venue: "Amador Donoso",
       status: "Programado",
     },
     {
@@ -22,6 +25,7 @@ export function MatchesView() {
       date: "2024-01-15",
       time: "19:30",
       court: "Cancha 2",
+      venue: "Laurita Vicuña",
       status: "Programado",
     },
     {
@@ -31,9 +35,202 @@ export function MatchesView() {
       date: "2024-01-16",
       time: "17:00",
       court: "Cancha 1",
+      venue: "Amador Donoso",
       status: "Programado",
     },
+  ])
+
+  const availablePlayers = [
+    "José Galaz", "Felipe Varas", "Marco Espinoza", "Daniel Vera", "Cristhian Vidal",
+    "Nelson Molina", "Diego Amaya", "Roberto Medina", "Danilo Milla", "Ignacio Cid",
+    "Sebastian Sepulveda", "Franco Maura", "Eduardo Farias", "Kabir Manzul", "Rodrigo Arratia"
   ]
+
+  const scheduleMatch = async () => {
+    // Generate time options (every 30 minutes from 6:00 to 23:00)
+    const timeOptions = []
+    for (let hour = 6; hour <= 23; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+        const displayTime = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+        timeOptions.push(`<option value="${timeString}">${displayTime}</option>`)
+      }
+    }
+
+    // Generate date options for next 30 days
+    const dateOptions = []
+    const today = new Date()
+    for (let i = 0; i < 30; i++) {
+      const date = new Date(today)
+      date.setDate(today.getDate() + i)
+      const dateString = date.toISOString().split('T')[0]
+      const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+      const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+      const dayName = dayNames[date.getDay()]
+      const monthName = monthNames[date.getMonth()]
+      const displayDate = `${dayName} ${date.getDate()} de ${monthName}, ${date.getFullYear()}`
+      dateOptions.push(`<option value="${dateString}">${displayDate}</option>`)
+    }
+
+    const { value: formValues } = await Swal.fire({
+      title: 'Programar Nuevo Partido',
+      html: `
+        <div class="space-y-4 text-left">
+          <div>
+            <label class="block text-sm font-medium mb-1">Jugador 1 *</label>
+            <select id="swal-player1" class="swal2-input" style="margin: 0; width: 100%; box-sizing: border-box;">
+              <option value="">Seleccionar jugador...</option>
+              ${availablePlayers.map(player => `<option value="${player}">${player}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Jugador 2 *</label>
+            <select id="swal-player2" class="swal2-input" style="margin: 0; width: 100%; box-sizing: border-box;">
+              <option value="">Seleccionar jugador...</option>
+              ${availablePlayers.map(player => `<option value="${player}">${player}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Fecha *</label>
+            <select id="swal-date" class="swal2-input" style="margin: 0; width: 100%; box-sizing: border-box;">
+              <option value="">Seleccionar fecha...</option>
+              ${dateOptions.join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Hora *</label>
+            <select id="swal-time" class="swal2-input" style="margin: 0; width: 100%; box-sizing: border-box;">
+              <option value="">Seleccionar hora...</option>
+              ${timeOptions.join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Club *</label>
+            <select id="swal-venue" class="swal2-input" style="margin: 0; width: 100%; box-sizing: border-box;" onchange="updateCourts()">
+              <option value="">Seleccionar club...</option>
+              <option value="Amador Donoso">Amador Donoso</option>
+              <option value="Laurita Vicuña">Laurita Vicuña</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Cancha *</label>
+            <select id="swal-court" class="swal2-input" style="margin: 0; width: 100%; box-sizing: border-box;" disabled>
+              <option value="">Primero selecciona un club...</option>
+            </select>
+          </div>
+        </div>
+      `,
+      focusConfirm: false,
+      confirmButtonText: 'Programar Partido',
+      cancelButtonText: 'Cancelar',
+      showCancelButton: true,
+      confirmButtonColor: '#10b981',
+      cancelButtonColor: '#ef4444',
+      width: 500,
+      customClass: {
+        popup: 'swal-wide',
+        htmlContainer: 'swal-html-container'
+      },
+      didRender: () => {
+        // Apply white background to all select and input elements
+        const inputs = document.querySelectorAll('#swal-player1, #swal-player2, #swal-date, #swal-time, #swal-venue, #swal-court')
+        inputs.forEach((input: any) => {
+          input.style.backgroundColor = 'white'
+          input.style.color = 'black'
+          input.style.border = '1px solid #d1d5db'
+          input.style.borderRadius = '6px'
+          input.style.padding = '8px 12px'
+          input.style.fontSize = '14px'
+        })
+      },
+      didOpen: () => {
+        // Function to update courts based on selected venue
+        (window as any).updateCourts = () => {
+          const venueSelect = document.getElementById('swal-venue') as HTMLSelectElement
+          const courtSelect = document.getElementById('swal-court') as HTMLSelectElement
+          const selectedVenue = venueSelect.value
+          
+          courtSelect.innerHTML = '<option value="">Seleccionar cancha...</option>'
+          courtSelect.disabled = !selectedVenue
+          
+          if (selectedVenue === 'Amador Donoso') {
+            ['Cancha 1', 'Cancha 2', 'Cancha 3'].forEach(court => {
+              const option = document.createElement('option')
+              option.value = court
+              option.textContent = court
+              courtSelect.appendChild(option)
+            })
+          } else if (selectedVenue === 'Laurita Vicuña') {
+            ['Cancha A', 'Cancha B', 'Cancha C'].forEach(court => {
+              const option = document.createElement('option')
+              option.value = court
+              option.textContent = court
+              courtSelect.appendChild(option)
+            })
+          }
+        }
+      },
+      preConfirm: () => {
+        const player1 = (document.getElementById('swal-player1') as HTMLSelectElement)?.value
+        const player2 = (document.getElementById('swal-player2') as HTMLSelectElement)?.value
+        const date = (document.getElementById('swal-date') as HTMLSelectElement)?.value
+        const time = (document.getElementById('swal-time') as HTMLSelectElement)?.value
+        const venue = (document.getElementById('swal-venue') as HTMLSelectElement)?.value
+        const court = (document.getElementById('swal-court') as HTMLSelectElement)?.value
+        
+        if (!player1 || !player2 || !date || !time || !venue || !court) {
+          Swal.showValidationMessage('Por favor complete todos los campos requeridos')
+          return false
+        }
+        
+        if (player1 === player2) {
+          Swal.showValidationMessage('Los jugadores deben ser diferentes')
+          return false
+        }
+        
+        const selectedDate = new Date(date)
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        
+        if (selectedDate < today) {
+          Swal.showValidationMessage('La fecha no puede ser anterior a hoy')
+          return false
+        }
+        
+        return { player1, player2, date, time, venue, court }
+      }
+    })
+
+    if (formValues) {
+      const newMatch = {
+        id: upcomingMatches.length + 1,
+        player1: formValues.player1,
+        player2: formValues.player2,
+        date: formValues.date,
+        time: formValues.time,
+        court: formValues.court,
+        venue: formValues.venue,
+        status: "Programado",
+      }
+      
+      setUpcomingMatches([...upcomingMatches, newMatch])
+      
+      await Swal.fire({
+        title: '¡Partido Programado!',
+        html: `
+          <div class="text-center">
+            <p><strong>${formValues.player1}</strong> vs <strong>${formValues.player2}</strong></p>
+            <p>📅 ${formValues.date} a las ${formValues.time}</p>
+            <p>🏟️ ${formValues.venue} - ${formValues.court}</p>
+          </div>
+        `,
+        icon: 'success',
+        confirmButtonColor: '#10b981',
+        timer: 4000,
+        timerProgressBar: true
+      })
+    }
+  }
 
   const recentMatches = [
     {
@@ -93,7 +290,7 @@ export function MatchesView() {
           <h2 className="text-3xl font-bold tracking-tight">Partidos</h2>
           <p className="text-muted-foreground">Gestión de partidos programados, en vivo y finalizados</p>
         </div>
-        <Button>
+        <Button onClick={scheduleMatch}>
           <Plus className="h-4 w-4 mr-2" />
           Programar Partido
         </Button>
@@ -131,7 +328,7 @@ export function MatchesView() {
                         </div>
                         <div className="flex items-center">
                           <MapPin className="h-4 w-4 mr-1" />
-                          {match.court}
+                          {match.venue} - {match.court}
                         </div>
                       </div>
                     </div>
