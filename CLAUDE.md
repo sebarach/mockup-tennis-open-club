@@ -4,10 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
-- `pnpm dev` - Start development server
+- `pnpm dev` - Start development server (Next.js 15)
 - `pnpm build` - Build for production
 - `pnpm start` - Start production server
 - `pnpm lint` - Run Next.js linting
+
+**Note:** This project uses pnpm as the package manager (not npm or yarn).
 
 ## Project Architecture
 
@@ -19,6 +21,7 @@ This is a Tennis League Dashboard built with Next.js 15 and React 19, generated 
 - Single-page application with view switching via state management
 - `app/page.tsx` contains the main dashboard with `activeView` state that controls which component renders
 - Navigation handled through `AppSidebar` component which updates the active view
+- State management is handled locally with React useState (no external state management library)
 
 **Component Organization:**
 - `components/` - Main application components (dashboard views, sidebar)
@@ -35,6 +38,9 @@ This is a Tennis League Dashboard built with Next.js 15 and React 19, generated 
 - Shadcn/ui components built on Radix UI primitives
 - Lucide React for icons
 - Recharts for data visualization
+- React Hook Form with Zod validation for forms
+- SweetAlert2 for alerts/modals
+- Date handling with date-fns and react-datepicker
 
 ### View Components
 The dashboard uses a view-switching pattern where these main components render based on navigation:
