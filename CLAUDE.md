@@ -58,3 +58,78 @@ The dashboard uses a view-switching pattern where these main components render b
 
 ### v0.dev Integration
 This project syncs automatically with v0.dev deployments. Changes made in v0.dev are pushed to this repository and deployed via Vercel.
+
+## Supabase Configuration
+
+### Database Setup
+The application uses Supabase as its backend database. The main table is `playerss` with the following structure:
+
+**Required columns for avatar functionality:**
+```sql
+-- Add avatar columns to playerss table
+ALTER TABLE playerss 
+ADD COLUMN IF NOT EXISTS avatar_url TEXT,
+ADD COLUMN IF NOT EXISTS avatar_path TEXT;
+```
+
+### Supabase Storage Setup
+For player avatar images, the project uses Supabase Storage:
+
+#### 1. Create Storage Bucket
+1. Go to **Storage** in Supabase dashboard
+2. Click **"New bucket"**
+3. Configure bucket:
+   - **Name:** `player-images`
+   - **Public bucket:** ✅ **CHECKED** (enables public access to images)
+   - **File size limit:** `5MB`
+   - **Allowed MIME types:** `image/*`
+
+#### 2. Configure Storage Policies
+After creating the bucket, set up Row Level Security policies via the Supabase Dashboard:
+
+1. Go to **Storage > player-images bucket > Policies**
+2. Create these 4 policies:
+
+**Policy 1: Allow Public Read**
+- **Policy name:** `Allow public read`
+- **Allowed operation:** `SELECT`
+- **Target roles:** `public`
+- **USING expression:** `bucket_id = 'player-images'`
+
+**Policy 2: Allow Public Insert**
+- **Policy name:** `Allow public insert`
+- **Allowed operation:** `INSERT` 
+- **Target roles:** `public`
+- **WITH CHECK expression:** `bucket_id = 'player-images'`
+
+**Policy 3: Allow Public Update**
+- **Policy name:** `Allow public update`
+- **Allowed operation:** `UPDATE`
+- **Target roles:** `public`
+- **USING expression:** `bucket_id = 'player-images'`
+
+**Policy 4: Allow Public Delete**
+- **Policy name:** `Allow public delete`
+- **Allowed operation:** `DELETE`
+- **Target roles:** `public`
+- **USING expression:** `bucket_id = 'player-images'`
+
+#### 3. Environment Variables
+Ensure these variables are set in your environment:
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+### Storage API Usage
+The `lib/supabase.js` file contains the storage API functions:
+- `storageAPI.uploadAvatar()` - Upload player avatar images
+- `storageAPI.deleteAvatar()` - Remove old avatar images
+- `storageAPI.getPublicUrl()` - Get public URLs for displaying images
+
+**Important Notes:**
+- Images are stored in the `avatars/` folder within the bucket
+- File naming convention: `{playerId}-{timestamp}.{extension}`
+- Maximum file size: 5MB
+- Supported formats: JPG, PNG, GIF
+- Old avatars are automatically deleted when updating player images

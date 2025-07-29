@@ -21,7 +21,7 @@ export default function TennisLeagueDashboard() {
   const renderActiveView = () => {
     switch (activeView) {
       case "overview":
-        return <DashboardOverview />
+        return <DashboardOverview setActiveView={setActiveView} />
       case "ranking":
         return <PlayersRanking />
       case "matches":

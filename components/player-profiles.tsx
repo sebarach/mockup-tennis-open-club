@@ -3,12 +3,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Search, Plus, Trophy, Phone, Mail, User, Calendar, Target, Zap } from "lucide-react"
 import { useState, useEffect } from "react"
 import Swal from "sweetalert2"
-import { playersAPI } from "@/lib/supabase"
+import { playersAPI, storageAPI } from "@/lib/supabase"
 
 export function PlayerProfiles() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -72,23 +72,31 @@ export function PlayerProfiles() {
       const data = await playersAPI.getAll()
       
       // Transformar datos de Supabase al formato del componente
-      const transformedPlayers = data.map(player => ({
-        id: player.id,
-        name: player.name,
-        email: player.email,
-        phone: player.phone,
-        ranking: player.ranking,
-        points: player.points,
-        matches: player.matches_played,
-        wins: player.wins,
-        losses: player.losses,
-        winRate: player.win_rate,
-        joinDate: player.join_date,
-        lastMatch: player.last_match,
-        favoriteShot: player.favorite_shot,
-        playingStyle: player.playing_style,
-        achievements: player.achievements || []
-      }))
+      const transformedPlayers = data.map(player => {
+        console.log('🔍 Datos del jugador desde BD:', player.name, {
+          id: player.id,
+          avatar_url: player.avatar_url,
+          avatar_path: player.avatar_path
+        })
+        return {
+          id: player.id,
+          name: player.name,
+          email: player.email,
+          phone: player.phone,
+          ranking: player.ranking,
+          points: player.points,
+          matches: player.matches_played,
+          wins: player.wins,
+          losses: player.losses,
+          winRate: player.win_rate,
+          joinDate: player.join_date,
+          lastMatch: player.last_match,
+          favoriteShot: player.favorite_shot,
+          playingStyle: player.playing_style,
+          achievements: player.achievements || [],
+          avatar_url: player.avatar_url
+        }
+      })
       
       setPlayers(transformedPlayers)
     } catch (err) {
@@ -122,7 +130,7 @@ export function PlayerProfiles() {
         <div class="player-profile-modal" style="text-align: left; color: #e5e7eb; background: #1f2937; padding: 16px; border-radius: 12px;">
           <!-- Desktop Layout -->
           <div class="desktop-header" style="display: flex; align-items: flex-start; gap: 32px; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid #374151;">
-            <img src="/logo.png" alt="${player.name}" style="width: 300px; height: 300px; border-radius: 16px; object-fit: cover; border: 4px solid #10b981; flex-shrink: 0;">
+            <img src="${player.avatar_url || '/logo.png'}" alt="${player.name}" style="width: 300px; height: 300px; border-radius: 16px; object-fit: cover; border: 4px solid #10b981; flex-shrink: 0;">
             <div style="flex: 1; padding-top: 20px;">
               <h3 style="margin: 0 0 16px 0; font-size: 32px; font-weight: bold; color: #f9fafb;">${player.name}</h3>
               <div style="display: flex; align-items: center; gap: 16px; margin: 16px 0; flex-wrap: wrap;">
@@ -147,7 +155,7 @@ export function PlayerProfiles() {
           
           <!-- Mobile Layout -->
           <div class="mobile-header" style="display: none; text-align: center; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid #374151;">
-            <img src="/logo.png" alt="${player.name}" style="width: 200px; height: 200px; border-radius: 16px; object-fit: cover; border: 3px solid #10b981; margin: 0 auto 16px auto; display: block;">
+            <img src="${player.avatar_url || '/logo.png'}" alt="${player.name}" style="width: 200px; height: 200px; border-radius: 16px; object-fit: cover; border: 3px solid #10b981; margin: 0 auto 16px auto; display: block;">
             <h3 style="margin: 0 0 12px 0; font-size: 24px; font-weight: bold; color: #f9fafb;">${player.name}</h3>
             <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin: 12px 0; flex-wrap: wrap;">
               <span style="background: #10b981; color: white; padding: 6px 12px; border-radius: 8px; font-size: 14px; font-weight: bold;">#${player.ranking}</span>
@@ -399,8 +407,20 @@ export function PlayerProfiles() {
         <div class="responsive-edit-form">
           <!-- Desktop Layout -->
           <div class="desktop-edit-header" style="display: flex; align-items: flex-start; gap: 32px; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid #374151;">
-            <img src="/logo.png" alt="${player.name}" style="width: clamp(200px, 25vw, 300px); height: clamp(200px, 25vw, 300px); border-radius: 16px; object-fit: cover; border: 4px solid #10b981; flex-shrink: 0;">
+            <div style="position: relative;">
+              <img src="${player.avatar_url || '/logo.png'}" alt="${player.name}" style="width: clamp(200px, 25vw, 300px); height: clamp(200px, 25vw, 300px); border-radius: 16px; object-fit: cover; border: 4px solid #10b981; flex-shrink: 0;">
+              <div style="position: absolute; bottom: -10px; right: -10px; background: #10b981; border-radius: 50%; padding: 8px; cursor: pointer;" onclick="document.getElementById('edit-avatar').click();">
+                <svg width="20" height="20" fill="white" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+              </div>
+            </div>
             <div style="flex: 1; padding-top: 20px;">
+              <div class="form-group">
+                <label class="form-label">📷 Cambiar Foto</label>
+                <input id="edit-avatar" type="file" class="form-input" accept="image/*" style="padding: 8px; cursor: pointer; margin-bottom: 12px;">
+                <p style="font-size: 11px; color: #9ca3af; margin-bottom: 16px;">Formatos: JPG, PNG, GIF (Max: 5MB)</p>
+              </div>
               <div class="form-group">
                 <label class="form-label">👤 Nombre Completo *</label>
                 <input id="edit-name" value="${player.name}" class="form-input" required style="font-size: clamp(18px, 4vw, 24px); font-weight: bold; margin-bottom: 16px;">
@@ -416,7 +436,19 @@ export function PlayerProfiles() {
           
           <!-- Mobile Layout -->
           <div class="mobile-edit-header" style="display: none; text-align: center; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid #374151;">
-            <img src="/logo.png" alt="${player.name}" style="width: clamp(150px, 40vw, 200px); height: clamp(150px, 40vw, 200px); border-radius: 16px; object-fit: cover; border: 3px solid #10b981; margin: 0 auto 16px auto; display: block;">
+            <div style="position: relative; display: inline-block;">
+              <img src="${player.avatar_url || '/logo.png'}" alt="${player.name}" style="width: clamp(150px, 40vw, 200px); height: clamp(150px, 40vw, 200px); border-radius: 16px; object-fit: cover; border: 3px solid #10b981; margin: 0 auto 16px auto; display: block;">
+              <div style="position: absolute; bottom: 6px; right: -10px; background: #10b981; border-radius: 50%; padding: 6px; cursor: pointer;" onclick="document.getElementById('edit-avatar-mobile').click();">
+                <svg width="16" height="16" fill="white" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">📷 Cambiar Foto</label>
+              <input id="edit-avatar-mobile" type="file" class="form-input" accept="image/*" style="padding: 8px; cursor: pointer; margin-bottom: 12px;">
+              <p style="font-size: 11px; color: #9ca3af; margin-bottom: 16px;">Formatos: JPG, PNG, GIF (Max: 5MB)</p>
+            </div>
             <div class="form-group">
               <label class="form-label">👤 Nombre Completo *</label>
               <input id="edit-name-mobile" value="${player.name}" class="form-input" required style="font-size: clamp(18px, 5vw, 24px); font-weight: bold; text-align: center;">
@@ -572,6 +604,11 @@ export function PlayerProfiles() {
         // Detectar si estamos en mobile o desktop basado en qué input está visible
         const isMobile = window.innerWidth <= 768
         
+        const avatarInput = isMobile 
+          ? document.getElementById('edit-avatar-mobile') as HTMLInputElement
+          : document.getElementById('edit-avatar') as HTMLInputElement
+        const avatarFile = avatarInput?.files?.[0] || null
+        
         const name = isMobile 
           ? (document.getElementById('edit-name-mobile') as HTMLInputElement)?.value
           : (document.getElementById('edit-name') as HTMLInputElement)?.value
@@ -587,6 +624,12 @@ export function PlayerProfiles() {
         const favoriteShot = isMobile 
           ? (document.getElementById('edit-shot-mobile') as HTMLSelectElement)?.value
           : (document.getElementById('edit-shot') as HTMLSelectElement)?.value
+
+        // Validar tamaño de archivo
+        if (avatarFile && avatarFile.size > 5 * 1024 * 1024) {
+          Swal.showValidationMessage('El archivo de imagen debe ser menor a 5MB')
+          return false
+        }
         
         if (!name || !email || !phone) {
           Swal.showValidationMessage('Por favor complete todos los campos requeridos')
@@ -599,20 +642,20 @@ export function PlayerProfiles() {
           return false
         }
         
-        return { name, email, phone, playingStyle, favoriteShot }
+        return { name, email, phone, playingStyle, favoriteShot, avatarFile }
       }
     })
 
     if (formValues) {
       try {
-        // Actualizar en Supabase
+        // Actualizar en Supabase (con avatar si existe)
         await playersAPI.update(player.id, {
           name: formValues.name,
           email: formValues.email,
           phone: formValues.phone,
           playingStyle: formValues.playingStyle,
           favoriteShot: formValues.favoriteShot
-        })
+        }, formValues.avatarFile)
 
         // Recargar la lista desde Supabase
         await loadPlayers()
@@ -713,6 +756,18 @@ export function PlayerProfiles() {
         </style>
         <div class="responsive-add-form">
           <div class="form-group">
+            <label for="add-avatar">📷 Foto del Jugador</label>
+            <input 
+              id="add-avatar" 
+              type="file" 
+              class="form-input" 
+              accept="image/*"
+              style="padding: 8px; cursor: pointer;"
+            >
+            <p style="font-size: 11px; color: #9ca3af; margin-top: 4px;">Formatos soportados: JPG, PNG, GIF (Max: 5MB)</p>
+          </div>
+          
+          <div class="form-group">
             <label for="add-name">👤 Nombre Completo *</label>
             <div class="icon-input" data-icon="🏷️">
               <input 
@@ -801,11 +856,19 @@ export function PlayerProfiles() {
         title: 'dark-modal-title'
       },
       preConfirm: () => {
+        const avatarInput = document.getElementById('add-avatar') as HTMLInputElement
+        const avatarFile = avatarInput?.files?.[0] || null
         const name = (document.getElementById('add-name') as HTMLInputElement)?.value
         const email = (document.getElementById('add-email') as HTMLInputElement)?.value
         const phone = (document.getElementById('add-phone') as HTMLInputElement)?.value
         const playingStyle = (document.getElementById('add-style') as HTMLSelectElement)?.value
         const favoriteShot = (document.getElementById('add-shot') as HTMLSelectElement)?.value
+
+        // Validar tamaño de archivo
+        if (avatarFile && avatarFile.size > 5 * 1024 * 1024) {
+          Swal.showValidationMessage('El archivo de imagen debe ser menor a 5MB')
+          return false
+        }
         
         if (!name || !email || !phone) {
           Swal.showValidationMessage('Por favor complete todos los campos requeridos')
@@ -818,7 +881,7 @@ export function PlayerProfiles() {
           return false
         }
         
-        return { name, email, phone, playingStyle, favoriteShot }
+        return { name, email, phone, playingStyle, favoriteShot, avatarFile }
       }
     })
 
@@ -827,21 +890,21 @@ export function PlayerProfiles() {
         // Mostrar loading
         Swal.fire({
           title: 'Guardando...',
-          text: 'Agregando jugador a la base de datos',
+          text: formValues.avatarFile ? 'Subiendo imagen y creando jugador...' : 'Agregando jugador a la base de datos',
           allowOutsideClick: false,
           didOpen: () => {
             Swal.showLoading()
           }
         })
 
-        // Crear jugador en Supabase
+        // Crear jugador en Supabase (con avatar si existe)
         const newPlayer = await playersAPI.create({
           name: formValues.name,
           email: formValues.email,
           phone: formValues.phone,
           favoriteShot: formValues.favoriteShot,
           playingStyle: formValues.playingStyle
-        })
+        }, formValues.avatarFile)
 
         console.log('✅ Jugador creado:', newPlayer)
 
@@ -931,6 +994,12 @@ export function PlayerProfiles() {
             <CardHeader>
               <div className="flex items-center space-x-4">
                 <Avatar className="h-16 w-16">
+                  <AvatarImage 
+                    src={player.avatar_url} 
+                    alt={player.name}
+                    onLoad={() => console.log('✅ Avatar cargado para:', player.name, player.avatar_url)}
+                    onError={() => console.log('❌ Error cargando avatar para:', player.name, player.avatar_url)}
+                  />
                   <AvatarFallback className="bg-gradient-to-r from-blue-500 to-green-500 text-white text-lg">
                     {player.name
                       .split(" ")

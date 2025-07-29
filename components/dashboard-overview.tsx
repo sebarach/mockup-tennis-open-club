@@ -1,15 +1,41 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Trophy, Users, Calendar, TrendingUp, Clock, MapPin } from "lucide-react"
+import { useState, useEffect } from "react"
+import { playersAPI } from "@/lib/supabase"
 
-export function DashboardOverview() {
+interface DashboardOverviewProps {
+  setActiveView?: (view: string) => void
+}
+
+export function DashboardOverview({ setActiveView }: DashboardOverviewProps) {
+  const [playersCount, setPlayersCount] = useState(0)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const loadPlayersCount = async () => {
+      try {
+        const players = await playersAPI.getAll()
+        setPlayersCount(players.length)
+      } catch (error) {
+        console.error('Error loading players count:', error)
+        setPlayersCount(0)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    loadPlayersCount()
+  }, [])
   const stats = [
     {
       title: "Jugadores Activos",
-      value: "32",
+      value: loading ? "..." : playersCount.toString(),
       description: "Jugadores registrados",
       icon: Users,
-      trend: "+4 este mes",
+      trend: loading ? "Cargando..." : `${playersCount} total`,
+      clickable: true,
+      onClick: () => setActiveView?.('players')
     },
     {
       title: "Partidos Jugados",
@@ -102,7 +128,11 @@ export function DashboardOverview() {
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat, index) => (
-          <Card key={index}>
+          <Card 
+            key={index} 
+            className={stat.clickable ? "cursor-pointer hover:shadow-lg transition-shadow hover:bg-accent/50" : ""}
+            onClick={stat.onClick}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
               <stat.icon className="h-4 w-4 text-muted-foreground" />
@@ -111,6 +141,9 @@ export function DashboardOverview() {
               <div className="text-2xl font-bold">{stat.value}</div>
               <p className="text-xs text-muted-foreground">{stat.description}</p>
               <p className="text-xs text-green-600 mt-1">{stat.trend}</p>
+              {stat.clickable && (
+                <p className="text-xs text-blue-600 mt-1 font-medium">Click para ver detalles →</p>
+              )}
             </CardContent>
           </Card>
         ))}
