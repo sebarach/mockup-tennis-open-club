@@ -643,33 +643,39 @@ export function PlayerProfiles() {
             padding: clamp(12px, 3vw, 20px);
             max-width: 100%;
             overflow-x: hidden;
+            color: #e5e7eb;
+            background: #1f2937;
+            border-radius: 12px;
           }
           .responsive-add-form .form-group {
             margin-bottom: clamp(12px, 3vw, 16px);
+            background: #374151;
+            padding: clamp(12px, 3vw, 16px);
+            border-radius: 8px;
           }
           .responsive-add-form label {
             display: block;
             font-size: clamp(12px, 2.5vw, 14px);
             font-weight: 600;
             margin-bottom: 6px;
-            color: #374151;
+            color: #10b981;
             text-align: left;
           }
           .responsive-add-form .form-input {
             width: 100%;
             padding: clamp(8px, 2vw, 12px);
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
+            border: 1px solid #4b5563;
+            border-radius: 6px;
             font-size: clamp(14px, 3vw, 16px);
-            background: white;
-            color: #111827;
+            background: #1f2937;
+            color: #f9fafb;
             transition: all 0.3s ease;
             box-sizing: border-box;
           }
           .responsive-add-form .form-input:focus {
             border-color: #10b981;
             outline: none;
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
           }
           .responsive-add-form .form-input::placeholder {
             color: #9ca3af;
@@ -679,6 +685,9 @@ export function PlayerProfiles() {
             display: grid;
             grid-template-columns: 1fr;
             gap: clamp(12px, 3vw, 16px);
+            background: transparent;
+            padding: 0;
+            border-radius: 0;
           }
           @media (min-width: 640px) {
             .responsive-add-form .form-row {
@@ -783,9 +792,13 @@ export function PlayerProfiles() {
       showCancelButton: true,
       confirmButtonColor: '#10b981',
       cancelButtonColor: '#ef4444',
+      width: 'clamp(320px, 95vw, 700px)',
+      background: '#1f2937',
+      color: '#e5e7eb',
       customClass: {
-        popup: 'responsive-modal',
-        htmlContainer: 'swal-html-container'
+        popup: 'responsive-modal dark-modal',
+        htmlContainer: 'swal-html-container',
+        title: 'dark-modal-title'
       },
       preConfirm: () => {
         const name = (document.getElementById('add-name') as HTMLInputElement)?.value
