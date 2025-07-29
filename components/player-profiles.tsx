@@ -6,185 +6,184 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Search, Plus, Trophy, Phone, Mail, User, Calendar, Target, Zap } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Swal from "sweetalert2"
+import { playersAPI } from "@/lib/supabase"
 
 export function PlayerProfiles() {
   const [searchTerm, setSearchTerm] = useState("")
-  const [players, setPlayers] = useState([
-    {
-      id: 1,
-      name: "José Galaz",
-      email: "jose.galaz@email.com",
-      phone: "+56 9 1234 5678",
-      ranking: 1,
-      points: 245,
-      matches: 999,
-      wins: 999,
-      losses: 0,
-      winRate: 100.0,
-      joinDate: "2023-03-15",
-      lastMatch: "2024-01-14",
-      favoriteShot: "Derecha",
-      playingStyle: "Agresivo",
-      achievements: ["Campeón Copa Fin de Año 2023", "Mejor Racha 2023"],
-    },
-    {
-      id: 2,
-      name: "Felipe Varas",
-      email: "felipe.varas@email.com",
-      phone: "+56 9 2345 6789",
-      ranking: 2,
-      points: 238,
-      matches: 11,
-      wins: 9,
-      losses: 2,
-      winRate: 81.8,
-      joinDate: "2023-02-20",
-      lastMatch: "2024-01-13",
-      favoriteShot: "Revés",
-      playingStyle: "Defensivo",
-      achievements: ["Campeón Liga Otoño 2023", "Finalista Copa Fin de Año 2023"],
-    },
-    {
-      id: 3,
-      name: "Marco Espinoza",
-      email: "marco.espinoza@email.com",
-      phone: "+56 9 3456 7890",
-      ranking: 3,
-      points: 232,
-      matches: 13,
-      wins: 9,
-      losses: 4,
-      winRate: 69.2,
-      joinDate: "2023-01-10",
-      lastMatch: "2024-01-13",
-      favoriteShot: "Saque",
-      playingStyle: "Completo",
-      achievements: ["Campeón Torneo Invierno 2023", "Jugador Más Activo 2023"],
-    },
-    {
-      id: 4,
-      name: "Daniel Vera",
-      email: "daniel.vera@email.com",
-      phone: "+56 9 4567 8901",
-      ranking: 4,
-      points: 225,
-      matches: 10,
-      wins: 8,
-      losses: 2,
-      winRate: 80.0,
-      joinDate: "2023-04-05",
-      lastMatch: "2024-01-12",
-      favoriteShot: "Volea",
-      playingStyle: "Red",
-      achievements: ["Finalista Torneo Invierno 2023", "Mayor Ascenso 2024"],
-    },
-    {
-      id: 5,
-      name: "Cristhian Vidal",
-      email: "cristhian.vidal@email.com",
-      phone: "+56 9 5678 9012",
-      ranking: 5,
-      points: 218,
-      matches: 12,
-      wins: 8,
-      losses: 4,
-      winRate: 66.7,
-      joinDate: "2023-05-12",
-      lastMatch: "2024-01-11",
-      favoriteShot: "Derecha",
-      playingStyle: "Consistente",
-      achievements: ["Top 5 Consistente 2023"],
-    },
-    {
-      id: 6,
-      name: "Nelson Molina",
-      email: "nelson.molina@email.com",
-      phone: "+56 9 6789 0123",
-      ranking: 7,
-      points: 195,
-      matches: 10,
-      wins: 6,
-      losses: 4,
-      winRate: 60.0,
-      joinDate: "2023-06-18",
-      lastMatch: "2024-01-14",
-      favoriteShot: "Revés",
-      playingStyle: "Táctico",
-      achievements: ["Mejor Deportividad 2023"],
-    },
-  ])
+  const [players, setPlayers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  // Cargar jugadores desde Supabase
+  useEffect(() => {
+    loadPlayers()
+  }, [])
+
+  const loadPlayers = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const data = await playersAPI.getAll()
+      
+      // Transformar datos de Supabase al formato del componente
+      const transformedPlayers = data.map(player => ({
+        id: player.id,
+        name: player.name,
+        email: player.email,
+        phone: player.phone,
+        ranking: player.ranking,
+        points: player.points,
+        matches: player.matches_played,
+        wins: player.wins,
+        losses: player.losses,
+        winRate: player.win_rate,
+        joinDate: player.join_date,
+        lastMatch: player.last_match,
+        favoriteShot: player.favorite_shot,
+        playingStyle: player.playing_style,
+        achievements: player.achievements || []
+      }))
+      
+      setPlayers(transformedPlayers)
+    } catch (err) {
+      setError(err.message)
+      console.error('Error cargando jugadores:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
 
   const viewProfile = async (player: typeof players[0]) => {
     await Swal.fire({
       title: `Perfil de ${player.name}`,
       html: `
-        <div class="player-profile-modal" style="text-align: left; color: #e5e7eb; background: #1f2937; padding: 20px; border-radius: 12px;">
-          <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid #374151;">
-            <img src="/placeholder-user.jpg" alt="${player.name}" style="width: 150px; height: 150px; border-radius: 12px; object-fit: cover; border: 3px solid #10b981;">
-            <div>
-              <h3 style="margin: 0; font-size: 24px; font-weight: bold; color: #f9fafb;">${player.name}</h3>
-              <div style="display: flex; align-items: center; gap: 10px; margin: 8px 0;">
-                <span style="background: #10b981; color: white; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold;">#${player.ranking}</span>
-                <span style="color: #9ca3af;">${player.points} puntos</span>
+        <style>
+          @media (max-width: 768px) {
+            .desktop-header { display: none !important; }
+            .mobile-header { display: block !important; }
+            .desktop-stats { display: none !important; }
+            .mobile-stats { display: grid !important; }
+            .player-profile-modal { padding: 12px !important; }
+          }
+          @media (min-width: 769px) {
+            .desktop-header { display: flex !important; }
+            .mobile-header { display: none !important; }
+            .desktop-stats { display: grid !important; }
+            .mobile-stats { display: none !important; }
+          }
+        </style>
+        <div class="player-profile-modal" style="text-align: left; color: #e5e7eb; background: #1f2937; padding: 16px; border-radius: 12px;">
+          <!-- Desktop Layout -->
+          <div class="desktop-header" style="display: flex; align-items: flex-start; gap: 32px; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid #374151;">
+            <img src="/logo.png" alt="${player.name}" style="width: 300px; height: 300px; border-radius: 16px; object-fit: cover; border: 4px solid #10b981; flex-shrink: 0;">
+            <div style="flex: 1; padding-top: 20px;">
+              <h3 style="margin: 0 0 16px 0; font-size: 32px; font-weight: bold; color: #f9fafb;">${player.name}</h3>
+              <div style="display: flex; align-items: center; gap: 16px; margin: 16px 0; flex-wrap: wrap;">
+                <span style="background: #10b981; color: white; padding: 8px 16px; border-radius: 8px; font-size: 16px; font-weight: bold;">#${player.ranking}</span>
+                <span style="color: #9ca3af; font-size: 18px;">${player.points} puntos</span>
               </div>
-              <p style="margin: 8px 0 0 0; color: #9ca3af;">Miembro desde: ${new Date(player.joinDate).toLocaleDateString('es-ES')}</p>
+              <p style="margin: 16px 0 0 0; color: #9ca3af; font-size: 16px;"><strong>Miembro desde:</strong> ${new Date(player.joinDate).toLocaleDateString('es-ES')}</p>
+              <p style="margin: 8px 0 0 0; color: #9ca3af; font-size: 16px;"><strong>Último partido:</strong> ${player.lastMatch}</p>
+              
+              <div style="margin-top: 24px; display: flex; gap: 16px; flex-wrap: wrap;">
+                <div style="background: #374151; padding: 12px 16px; border-radius: 8px; flex: 1; min-width: 140px;">
+                  <p style="margin: 0; color: #9ca3af; font-size: 12px; font-weight: bold;">ESTILO DE JUEGO</p>
+                  <p style="margin: 4px 0 0 0; color: #f9fafb; font-size: 16px; font-weight: bold;">${player.playingStyle}</p>
+                </div>
+                <div style="background: #374151; padding: 12px 16px; border-radius: 8px; flex: 1; min-width: 140px;">
+                  <p style="margin: 0; color: #9ca3af; font-size: 12px; font-weight: bold;">GOLPE FAVORITO</p>
+                  <p style="margin: 4px 0 0 0; color: #f9fafb; font-size: 16px; font-weight: bold;">${player.favoriteShot}</p>
+                </div>
+              </div>
             </div>
           </div>
           
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
-            <div>
-              <h4 style="color: #10b981; margin: 0 0 12px 0; font-size: 16px; font-weight: bold;">📧 Información de Contacto</h4>
-              <div style="background: #374151; padding: 16px; border-radius: 8px;">
-                <p style="margin: 0 0 8px 0;"><strong>Email:</strong> ${player.email}</p>
-                <p style="margin: 0;"><strong>Teléfono:</strong> ${player.phone}</p>
-              </div>
+          <!-- Mobile Layout -->
+          <div class="mobile-header" style="display: none; text-align: center; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid #374151;">
+            <img src="/logo.png" alt="${player.name}" style="width: 200px; height: 200px; border-radius: 16px; object-fit: cover; border: 3px solid #10b981; margin: 0 auto 16px auto; display: block;">
+            <h3 style="margin: 0 0 12px 0; font-size: 24px; font-weight: bold; color: #f9fafb;">${player.name}</h3>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin: 12px 0; flex-wrap: wrap;">
+              <span style="background: #10b981; color: white; padding: 6px 12px; border-radius: 8px; font-size: 14px; font-weight: bold;">#${player.ranking}</span>
+              <span style="color: #9ca3af; font-size: 16px;">${player.points} puntos</span>
             </div>
+            <p style="margin: 12px 0 0 0; color: #9ca3af; font-size: 14px;"><strong>Miembro desde:</strong> ${new Date(player.joinDate).toLocaleDateString('es-ES')}</p>
+            <p style="margin: 6px 0 0 0; color: #9ca3af; font-size: 14px;"><strong>Último partido:</strong> ${player.lastMatch}</p>
             
-            <div>
-              <h4 style="color: #10b981; margin: 0 0 12px 0; font-size: 16px; font-weight: bold;">🎾 Estilo de Juego</h4>
-              <div style="background: #374151; padding: 16px; border-radius: 8px;">
-                <p style="margin: 0 0 8px 0;"><strong>Estilo:</strong> ${player.playingStyle}</p>
-                <p style="margin: 0;"><strong>Golpe Favorito:</strong> ${player.favoriteShot}</p>
+            <div style="margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div style="background: #374151; padding: 10px 12px; border-radius: 8px;">
+                <p style="margin: 0; color: #9ca3af; font-size: 11px; font-weight: bold;">ESTILO DE JUEGO</p>
+                <p style="margin: 4px 0 0 0; color: #f9fafb; font-size: 14px; font-weight: bold;">${player.playingStyle}</p>
+              </div>
+              <div style="background: #374151; padding: 10px 12px; border-radius: 8px;">
+                <p style="margin: 0; color: #9ca3af; font-size: 11px; font-weight: bold;">GOLPE FAVORITO</p>
+                <p style="margin: 4px 0 0 0; color: #f9fafb; font-size: 14px; font-weight: bold;">${player.favoriteShot}</p>
               </div>
             </div>
           </div>
           
           <div style="margin-bottom: 24px;">
-            <h4 style="color: #10b981; margin: 0 0 12px 0; font-size: 16px; font-weight: bold;">📊 Estadísticas</h4>
-            <div style="background: #374151; padding: 16px; border-radius: 8px;">
-              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; text-align: center;">
-                <div style="background: #1f2937; padding: 12px; border-radius: 6px;">
-                  <div style="font-size: 24px; font-weight: bold; color: #10b981;">${player.wins}</div>
-                  <div style="font-size: 12px; color: #9ca3af;">Victorias</div>
+            <h4 style="color: #10b981; margin: 0 0 12px 0; font-size: 18px; font-weight: bold;">📧 Información de Contacto</h4>
+            <div style="background: #374151; padding: 20px; border-radius: 8px;">
+              <p style="margin: 0 0 12px 0; font-size: 16px; word-break: break-word;"><strong>Email:</strong> ${player.email}</p>
+              <p style="margin: 0; font-size: 16px;"><strong>Teléfono:</strong> ${player.phone}</p>
+            </div>
+          </div>
+          
+          <div style="margin-bottom: 24px;">
+            <h4 style="color: #10b981; margin: 0 0 12px 0; font-size: 18px; font-weight: bold;">📊 Estadísticas</h4>
+            <div style="background: #374151; padding: 20px; border-radius: 8px;">
+              <!-- Desktop Stats Grid -->
+              <div class="desktop-stats" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; text-align: center;">
+                <div style="background: #1f2937; padding: 18px; border-radius: 8px;">
+                  <div style="font-size: 28px; font-weight: bold; color: #10b981;">${player.wins}</div>
+                  <div style="font-size: 14px; color: #9ca3af; margin-top: 4px;">Victorias</div>
                 </div>
-                <div style="background: #1f2937; padding: 12px; border-radius: 6px;">
-                  <div style="font-size: 24px; font-weight: bold; color: #ef4444;">${player.losses}</div>
-                  <div style="font-size: 12px; color: #9ca3af;">Derrotas</div>
+                <div style="background: #1f2937; padding: 18px; border-radius: 8px;">
+                  <div style="font-size: 28px; font-weight: bold; color: #ef4444;">${player.losses}</div>
+                  <div style="font-size: 14px; color: #9ca3af; margin-top: 4px;">Derrotas</div>
                 </div>
-                <div style="background: #1f2937; padding: 12px; border-radius: 6px;">
-                  <div style="font-size: 24px; font-weight: bold; color: #f59e0b;">${player.winRate.toFixed(1)}%</div>
-                  <div style="font-size: 12px; color: #9ca3af;">% Victoria</div>
+                <div style="background: #1f2937; padding: 18px; border-radius: 8px;">
+                  <div style="font-size: 28px; font-weight: bold; color: #f59e0b;">${player.winRate.toFixed(1)}%</div>
+                  <div style="font-size: 14px; color: #9ca3af; margin-top: 4px;">% Victoria</div>
                 </div>
-                <div style="background: #1f2937; padding: 12px; border-radius: 6px;">
-                  <div style="font-size: 24px; font-weight: bold; color: #3b82f6;">${player.matches}</div>
-                  <div style="font-size: 12px; color: #9ca3af;">Partidos</div>
+                <div style="background: #1f2937; padding: 18px; border-radius: 8px;">
+                  <div style="font-size: 28px; font-weight: bold; color: #3b82f6;">${player.matches}</div>
+                  <div style="font-size: 14px; color: #9ca3af; margin-top: 4px;">Partidos</div>
                 </div>
               </div>
-              <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #4b5563;">
-                <p style="margin: 0; color: #9ca3af;"><strong>Último partido:</strong> ${player.lastMatch}</p>
+              
+              <!-- Mobile Stats Grid -->
+              <div class="mobile-stats" style="display: none; grid-template-columns: repeat(2, 1fr); gap: 12px; text-align: center;">
+                <div style="background: #1f2937; padding: 14px; border-radius: 8px;">
+                  <div style="font-size: 22px; font-weight: bold; color: #10b981;">${player.wins}</div>
+                  <div style="font-size: 12px; color: #9ca3af; margin-top: 4px;">Victorias</div>
+                </div>
+                <div style="background: #1f2937; padding: 14px; border-radius: 8px;">
+                  <div style="font-size: 22px; font-weight: bold; color: #ef4444;">${player.losses}</div>
+                  <div style="font-size: 12px; color: #9ca3af; margin-top: 4px;">Derrotas</div>
+                </div>
+                <div style="background: #1f2937; padding: 14px; border-radius: 8px;">
+                  <div style="font-size: 22px; font-weight: bold; color: #f59e0b;">${player.winRate.toFixed(1)}%</div>
+                  <div style="font-size: 12px; color: #9ca3af; margin-top: 4px;">% Victoria</div>
+                </div>
+                <div style="background: #1f2937; padding: 14px; border-radius: 8px;">
+                  <div style="font-size: 22px; font-weight: bold; color: #3b82f6;">${player.matches}</div>
+                  <div style="font-size: 12px; color: #9ca3af; margin-top: 4px;">Partidos</div>
+                </div>
               </div>
             </div>
           </div>
           
           ${player.achievements.length > 0 ? `
           <div>
-            <h4 style="color: #10b981; margin: 0 0 12px 0; font-size: 16px; font-weight: bold;">🏆 Logros y Reconocimientos</h4>
-            <div style="background: #374151; padding: 16px; border-radius: 8px;">
-              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <h4 style="color: #10b981; margin: 0 0 12px 0; font-size: 18px; font-weight: bold;">🏆 Logros y Reconocimientos</h4>
+            <div style="background: #374151; padding: 20px; border-radius: 8px;">
+              <div style="display: flex; flex-wrap: wrap; gap: 12px;">
                 ${player.achievements.map(achievement => `
-                  <span style="background: #065f46; color: #10b981; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold;">
+                  <span style="background: #065f46; color: #10b981; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: bold;">
                     ${achievement}
                   </span>
                 `).join('')}
@@ -196,7 +195,7 @@ export function PlayerProfiles() {
       `,
       confirmButtonText: 'Cerrar',
       confirmButtonColor: '#10b981',
-      width: '800px',
+      width: window.innerWidth <= 768 ? '95%' : '800px',
       background: '#1f2937',
       color: '#e5e7eb',
       customClass: {
@@ -207,13 +206,46 @@ export function PlayerProfiles() {
     })
   }
 
+  const deletePlayer = async (player: typeof players[0]) => {
+    const result = await Swal.fire({
+      title: '¿Estás seguro?',
+      text: `¿Deseas eliminar a ${player.name}? Esta acción no se puede deshacer.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    })
+
+    if (result.isConfirmed) {
+      try {
+        await playersAPI.delete(player.id)
+        await loadPlayers() // Recargar la lista
+        Swal.fire({
+          title: '¡Eliminado!',
+          text: `${player.name} ha sido eliminado correctamente.`,
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        })
+      } catch (error) {
+        Swal.fire({
+          title: 'Error',
+          text: error.message || 'No se pudo eliminar el jugador',
+          icon: 'error'
+        })
+      }
+    }
+  }
+
   const editPlayer = async (player: typeof players[0]) => {
     const { value: formValues } = await Swal.fire({
       title: `Editar Perfil de ${player.name}`,
       html: `
         <div class="player-edit-modal" style="text-align: left; color: #e5e7eb; background: #1f2937; padding: 20px; border-radius: 12px;">
           <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid #374151;">
-            <img src="/placeholder-user.jpg" alt="${player.name}" style="width: 150px; height: 150px; border-radius: 12px; object-fit: cover; border: 3px solid #10b981;">
+            <img src="/logo.png" alt="${player.name}" style="width: 150px; height: 150px; border-radius: 12px; object-fit: cover; border: 3px solid #10b981;">
             <div style="flex: 1;">
               <label style="color: #10b981; font-size: 14px; font-weight: bold; display: block; margin-bottom: 4px;">Nombre Completo *</label>
               <input id="edit-name" value="${player.name}" style="width: 100%; padding: 8px 12px; background: #374151; border: 1px solid #4b5563; border-radius: 6px; color: #f9fafb; font-size: 16px; margin-bottom: 8px;">
@@ -350,32 +382,33 @@ export function PlayerProfiles() {
     })
 
     if (formValues) {
-      const updatedPlayers = players.map(p => {
-        if (p.id === player.id) {
-          return {
-            ...p,
-            name: formValues.name,
-            email: formValues.email,
-            phone: formValues.phone,
-            playingStyle: formValues.playingStyle,
-            favoriteShot: formValues.favoriteShot
-          }
-        }
-        return p
-      })
-      
-      setPlayers(updatedPlayers)
-      
-      await Swal.fire({
-        title: '¡Perfil Actualizado!',
-        text: `Los datos de ${formValues.name} han sido actualizados exitosamente.`,
-        icon: 'success',
-        confirmButtonColor: '#10b981',
-        timer: 3000,
-        timerProgressBar: true,
-        background: '#1f2937',
-        color: '#e5e7eb'
-      })
+      try {
+        // Actualizar en Supabase
+        await playersAPI.update(player.id, {
+          name: formValues.name,
+          email: formValues.email,
+          phone: formValues.phone,
+          playingStyle: formValues.playingStyle,
+          favoriteShot: formValues.favoriteShot
+        })
+
+        // Recargar la lista desde Supabase
+        await loadPlayers()
+        
+        await Swal.fire({
+          title: '¡Perfil Actualizado!',
+          text: `Los datos de ${formValues.name} han sido actualizados exitosamente.`,
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        })
+      } catch (error) {
+        await Swal.fire({
+          title: 'Error',
+          text: `No se pudo actualizar el jugador: ${error.message}`,
+          icon: 'error'
+        })
+      }
     }
   }
 
@@ -455,34 +488,48 @@ export function PlayerProfiles() {
     })
 
     if (formValues) {
-      const newPlayer = {
-        id: players.length + 1,
-        name: formValues.name,
-        email: formValues.email,
-        phone: formValues.phone,
-        ranking: players.length + 1,
-        points: 0,
-        matches: 0,
-        wins: 0,
-        losses: 0,
-        winRate: 0,
-        joinDate: new Date().toISOString().split('T')[0],
-        lastMatch: '-',
-        favoriteShot: formValues.favoriteShot,
-        playingStyle: formValues.playingStyle,
-        achievements: [],
+      try {
+        // Mostrar loading
+        Swal.fire({
+          title: 'Guardando...',
+          text: 'Agregando jugador a la base de datos',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading()
+          }
+        })
+
+        // Crear jugador en Supabase
+        const newPlayer = await playersAPI.create({
+          name: formValues.name,
+          email: formValues.email,
+          phone: formValues.phone,
+          favoriteShot: formValues.favoriteShot,
+          playingStyle: formValues.playingStyle
+        })
+
+        console.log('✅ Jugador creado:', newPlayer)
+
+        // Recargar la lista desde Supabase
+        await loadPlayers()
+        
+        await Swal.fire({
+          title: '¡Jugador Agregado!',
+          text: `${formValues.name} ha sido agregado exitosamente al Tennis Open Club.`,
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        })
+      } catch (error) {
+        console.error('❌ Error agregando jugador:', error)
+        
+        await Swal.fire({
+          title: 'Error',
+          text: `No se pudo agregar el jugador: ${error.message}`,
+          icon: 'error',
+          confirmButtonColor: '#ef4444'
+        })
       }
-      
-      setPlayers([...players, newPlayer])
-      
-      await Swal.fire({
-        title: '¡Jugador Agregado!',
-        text: `${formValues.name} ha sido agregado exitosamente a la liga.`,
-        icon: 'success',
-        confirmButtonColor: '#10b981',
-        timer: 3000,
-        timerProgressBar: true
-      })
     }
   }
 
@@ -497,7 +544,7 @@ export function PlayerProfiles() {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Perfiles de Jugadores</h2>
-          <p className="text-muted-foreground">Información detallada de todos los jugadores de la liga</p>
+          <p className="text-muted-foreground">Información detallada de todos los jugadores del Tennis Open Club</p>
         </div>
         <Button onClick={addPlayer}>
           <Plus className="h-4 w-4 mr-2" />
@@ -516,8 +563,34 @@ export function PlayerProfiles() {
         />
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <div className="flex items-center gap-3">
+            <div className="animate-spin h-6 w-6 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+            <span className="text-muted-foreground">Cargando jugadores...</span>
+          </div>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded">
+          <strong>Error:</strong> {error}
+          <Button 
+            onClick={loadPlayers} 
+            variant="outline" 
+            size="sm" 
+            className="ml-3"
+          >
+            Reintentar
+          </Button>
+        </div>
+      )}
+
       {/* Players Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {!loading && !error && (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {filteredPlayers.map((player) => (
           <Card key={player.id} className="hover:shadow-lg transition-shadow">
             <CardHeader>
@@ -613,15 +686,24 @@ export function PlayerProfiles() {
                 <Button size="sm" className="flex-1" onClick={() => editPlayer(player)}>
                   Editar
                 </Button>
+                <Button 
+                  variant="destructive" 
+                  size="sm" 
+                  className="flex-1 bg-red-600 hover:bg-red-700" 
+                  onClick={() => deletePlayer(player)}
+                >
+                  Eliminar
+                </Button>
               </div>
             </CardContent>
           </Card>
         ))}
-      </div>
 
-      {filteredPlayers.length === 0 && (
-        <div className="text-center py-8 text-muted-foreground">
-          No se encontraron jugadores que coincidan con la búsqueda
+        {filteredPlayers.length === 0 && (
+          <div className="text-center py-8 text-muted-foreground">
+            No se encontraron jugadores que coincidan con la búsqueda
+          </div>
+        )}
         </div>
       )}
     </div>

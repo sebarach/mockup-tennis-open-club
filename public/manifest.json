@@ -1,7 +1,7 @@
 {
-  "name": "Liga de Tenis - Dashboard",
-  "short_name": "Liga Tenis",
-  "description": "Dashboard administrativo para liga de tenis",
+  "name": "Tennis Open Club - Dashboard",
+  "short_name": "Tennis Open Club",
+  "description": "Dashboard administrativo para Tennis Open Club",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",
@@ -10,13 +10,13 @@
   "categories": ["sports", "productivity"],
   "icons": [
     {
-      "src": "/placeholder-logo.png",
+      "src": "/logo.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable any"
     },
     {
-      "src": "/placeholder-logo.png",
+      "src": "/logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable any"

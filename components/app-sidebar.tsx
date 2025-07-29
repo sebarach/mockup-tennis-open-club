@@ -52,11 +52,11 @@ export function AppSidebar({ activeView, setActiveView }: AppSidebarProps) {
     <Sidebar>
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-2">
-          <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-green-500 flex items-center justify-center">
-            <Trophy className="h-4 w-4 text-white" />
+          <div className="h-8 w-8 rounded-full overflow-hidden flex items-center justify-center">
+            <img src="/logo.png" alt="Tennis Open Club" className="h-8 w-8 object-cover" />
           </div>
           <div>
-            <p className="text-sm font-medium">Liga de Tenis</p>
+            <p className="text-sm font-medium">Tennis Open Club</p>
             <p className="text-xs text-muted-foreground">Administrador</p>
           </div>
         </div>

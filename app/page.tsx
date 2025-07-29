@@ -37,8 +37,10 @@ export default function TennisLeagueDashboard() {
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <div className="flex items-center gap-2">
-            <div className="h-6 w-6 rounded-full bg-gradient-to-r from-blue-500 to-green-500" />
-            <h1 className="text-xl font-semibold">Liga de Tenis - Admin</h1>
+            <div className="h-6 w-6 rounded-full overflow-hidden">
+              <img src="/logo.png" alt="Tennis Open Club" className="h-6 w-6 object-cover" />
+            </div>
+            <h1 className="text-xl font-semibold">Tennis Open Club - Admin</h1>
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4">{renderActiveView()}</div>

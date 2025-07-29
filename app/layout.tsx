@@ -5,8 +5,8 @@ import { ThemeProvider } from '@/components/theme-provider'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Liga de Tenis - Dashboard',
-  description: 'Dashboard administrativo para gestión de liga de tenis',
+  title: 'Tennis Open Club - Dashboard',
+  description: 'Dashboard administrativo para gestión del Tennis Open Club',
   generator: 'v0.dev',
   manifest: '/manifest.json',
   themeColor: '#10b981',
@@ -25,8 +25,9 @@ export default function RootLayout({
         <meta name="theme-color" content="#10b981" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="Liga Tenis" />
-        <link rel="apple-touch-icon" href="/placeholder-logo.png" />
+        <meta name="apple-mobile-web-app-title" content="Tennis Open Club" />
+        <link rel="apple-touch-icon" href="/logo.png" />
+        <link rel="icon" href="/logo.png" />
         <style>{`
 html {
   font-family: ${GeistSans.style.fontFamily};
