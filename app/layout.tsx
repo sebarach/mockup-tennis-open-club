@@ -44,6 +44,19 @@ html {
         <script
           dangerouslySetInnerHTML={{
             __html: `
+              // Forzar recarga de CSS si no se carga correctamente
+              document.addEventListener('DOMContentLoaded', function() {
+                const stylesheets = document.querySelectorAll('link[rel="stylesheet"]');
+                stylesheets.forEach(function(link) {
+                  if (link.sheet === null) {
+                    console.log('Recargando stylesheet:', link.href);
+                    const newLink = link.cloneNode();
+                    newLink.href = link.href + '?v=' + Date.now();
+                    link.parentNode.replaceChild(newLink, link);
+                  }
+                });
+              });
+              
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
                   navigator.serviceWorker.register('/sw.js')

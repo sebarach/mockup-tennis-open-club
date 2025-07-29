@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Trophy, Users, Calendar, BarChart3, Settings, Home } from "lucide-react"
 import {
   Sidebar,
@@ -48,10 +49,61 @@ interface AppSidebarProps {
 }
 
 export function AppSidebar({ activeView, setActiveView }: AppSidebarProps) {
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  if (!isMounted) {
+    return (
+      <Sidebar>
+        <SidebarHeader>
+          <div className="flex items-center gap-2 px-2 py-2">
+            <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-green-500 flex items-center justify-center">
+              <Trophy className="h-4 w-4 text-white" />
+            </div>
+            <div>
+              <p className="text-sm font-medium">Tennis Open Club</p>
+              <p className="text-xs text-muted-foreground">Administrador</p>
+            </div>
+          </div>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>Navegación</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {menuItems.map((item) => (
+                  <SidebarMenuItem key={item.id}>
+                    <SidebarMenuButton onClick={() => setActiveView(item.id)} isActive={activeView === item.id}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+        <SidebarFooter>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton>
+                <Settings />
+                <span>Configuración</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+      </Sidebar>
+    )
+  }
+
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-2">
+        <div className="flex items-center gap-2 px-2 py-2" suppressHydrationWarning>
           <div className="h-8 w-8 rounded-full overflow-hidden flex items-center justify-center">
             <img src="/logo.png" alt="Tennis Open Club" className="h-8 w-8 object-cover" />
           </div>

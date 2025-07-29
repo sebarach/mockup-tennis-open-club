@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
@@ -12,6 +12,11 @@ import { PlayerProfiles } from "@/components/player-profiles"
 
 export default function TennisLeagueDashboard() {
   const [activeView, setActiveView] = useState("overview")
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   const renderActiveView = () => {
     switch (activeView) {
@@ -36,9 +41,13 @@ export default function TennisLeagueDashboard() {
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" suppressHydrationWarning>
             <div className="h-6 w-6 rounded-full overflow-hidden">
-              <img src="/logo.png" alt="Tennis Open Club" className="h-6 w-6 object-cover" />
+              {isMounted ? (
+                <img src="/logo.png" alt="Tennis Open Club" className="h-6 w-6 object-cover" />
+              ) : (
+                <div className="h-6 w-6 rounded-full bg-gradient-to-r from-blue-500 to-green-500" />
+              )}
             </div>
             <h1 className="text-xl font-semibold">Tennis Open Club - Admin</h1>
           </div>
