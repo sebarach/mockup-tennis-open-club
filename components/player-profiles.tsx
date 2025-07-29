@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
-import { Search, Plus, Trophy, Phone, Mail, User, Calendar, Target, Zap } from "lucide-react"
+import { Search, Plus, Trophy, Phone, Mail, User, Calendar, Target, Zap, MessageCircle } from "lucide-react"
 import { useState, useEffect } from "react"
 import Swal from "sweetalert2"
 import { playersAPI, storageAPI } from "@/lib/supabase"
@@ -15,6 +15,35 @@ export function PlayerProfiles() {
   const [players, setPlayers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+
+  // Función para formatear número de teléfono para WhatsApp
+  const formatPhoneForWhatsApp = (phone) => {
+    if (!phone) return ""
+    // Remover todos los caracteres que no sean números
+    let cleaned = phone.replace(/\D/g, "")
+    
+    // Si empieza con 56 (código de Chile), mantenerlo
+    // Si empieza con 9, agregar 56
+    // Si no empieza con ninguno, asumir que es chileno y agregar 569
+    if (cleaned.startsWith("56")) {
+      return cleaned
+    } else if (cleaned.startsWith("9") && cleaned.length === 9) {
+      return "56" + cleaned
+    } else if (cleaned.length === 8) {
+      return "569" + cleaned
+    } else if (cleaned.length === 9 && !cleaned.startsWith("9")) {
+      return "56" + cleaned
+    }
+    return cleaned
+  }
+
+  // Función para abrir WhatsApp
+  const openWhatsApp = (phone, playerName) => {
+    const formattedPhone = formatPhoneForWhatsApp(phone)
+    const message = encodeURIComponent(`Hola ${playerName}, te contacto desde Tennis Open Club 🎾`)
+    const whatsappUrl = `https://wa.me/${formattedPhone}?text=${message}`
+    window.open(whatsappUrl, '_blank')
+  }
 
   // Add responsive modal styles
   useEffect(() => {
@@ -72,31 +101,24 @@ export function PlayerProfiles() {
       const data = await playersAPI.getAll()
       
       // Transformar datos de Supabase al formato del componente
-      const transformedPlayers = data.map(player => {
-        console.log('🔍 Datos del jugador desde BD:', player.name, {
-          id: player.id,
-          avatar_url: player.avatar_url,
-          avatar_path: player.avatar_path
-        })
-        return {
-          id: player.id,
-          name: player.name,
-          email: player.email,
-          phone: player.phone,
-          ranking: player.ranking,
-          points: player.points,
-          matches: player.matches_played,
-          wins: player.wins,
-          losses: player.losses,
-          winRate: player.win_rate,
-          joinDate: player.join_date,
-          lastMatch: player.last_match,
-          favoriteShot: player.favorite_shot,
-          playingStyle: player.playing_style,
-          achievements: player.achievements || [],
-          avatar_url: player.avatar_url
-        }
-      })
+      const transformedPlayers = data.map(player => ({
+        id: player.id,
+        name: player.name,
+        email: player.email,
+        phone: player.phone,
+        ranking: player.ranking,
+        points: player.points,
+        matches: player.matches_played,
+        wins: player.wins,
+        losses: player.losses,
+        winRate: player.win_rate,
+        joinDate: player.join_date,
+        lastMatch: player.last_match,
+        favoriteShot: player.favorite_shot,
+        playingStyle: player.playing_style,
+        achievements: player.achievements || [],
+        avatar_url: player.avatar_url
+      }))
       
       setPlayers(transformedPlayers)
     } catch (err) {
@@ -130,7 +152,7 @@ export function PlayerProfiles() {
         <div class="player-profile-modal" style="text-align: left; color: #e5e7eb; background: #1f2937; padding: 16px; border-radius: 12px;">
           <!-- Desktop Layout -->
           <div class="desktop-header" style="display: flex; align-items: flex-start; gap: 32px; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid #374151;">
-            <img src="${player.avatar_url || '/logo.png'}" alt="${player.name}" style="width: 300px; height: 300px; border-radius: 16px; object-fit: cover; border: 4px solid #10b981; flex-shrink: 0;">
+            <img src="${player.avatar_url || '/logo.png'}" alt="${player.name}" style="width: 300px; height: 300px; border-radius: 16px; object-fit: contain; object-position: center; border: 4px solid #10b981; flex-shrink: 0; background: #374151;">
             <div style="flex: 1; padding-top: 20px;">
               <h3 style="margin: 0 0 16px 0; font-size: 32px; font-weight: bold; color: #f9fafb;">${player.name}</h3>
               <div style="display: flex; align-items: center; gap: 16px; margin: 16px 0; flex-wrap: wrap;">
@@ -155,7 +177,7 @@ export function PlayerProfiles() {
           
           <!-- Mobile Layout -->
           <div class="mobile-header" style="display: none; text-align: center; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid #374151;">
-            <img src="${player.avatar_url || '/logo.png'}" alt="${player.name}" style="width: 200px; height: 200px; border-radius: 16px; object-fit: cover; border: 3px solid #10b981; margin: 0 auto 16px auto; display: block;">
+            <img src="${player.avatar_url || '/logo.png'}" alt="${player.name}" style="width: 200px; height: 200px; border-radius: 16px; object-fit: contain; object-position: center; border: 3px solid #10b981; margin: 0 auto 16px auto; display: block; background: #374151;">
             <h3 style="margin: 0 0 12px 0; font-size: 24px; font-weight: bold; color: #f9fafb;">${player.name}</h3>
             <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin: 12px 0; flex-wrap: wrap;">
               <span style="background: #10b981; color: white; padding: 6px 12px; border-radius: 8px; font-size: 14px; font-weight: bold;">#${player.ranking}</span>
@@ -408,7 +430,7 @@ export function PlayerProfiles() {
           <!-- Desktop Layout -->
           <div class="desktop-edit-header" style="display: flex; align-items: flex-start; gap: 32px; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid #374151;">
             <div style="position: relative;">
-              <img src="${player.avatar_url || '/logo.png'}" alt="${player.name}" style="width: clamp(200px, 25vw, 300px); height: clamp(200px, 25vw, 300px); border-radius: 16px; object-fit: cover; border: 4px solid #10b981; flex-shrink: 0;">
+              <img src="${player.avatar_url || '/logo.png'}" alt="${player.name}" style="width: clamp(200px, 25vw, 300px); height: clamp(200px, 25vw, 300px); border-radius: 16px; object-fit: contain; object-position: center; border: 4px solid #10b981; flex-shrink: 0; background: #374151;">
               <div style="position: absolute; bottom: -10px; right: -10px; background: #10b981; border-radius: 50%; padding: 8px; cursor: pointer;" onclick="document.getElementById('edit-avatar').click();">
                 <svg width="20" height="20" fill="white" viewBox="0 0 24 24">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
@@ -437,7 +459,7 @@ export function PlayerProfiles() {
           <!-- Mobile Layout -->
           <div class="mobile-edit-header" style="display: none; text-align: center; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid #374151;">
             <div style="position: relative; display: inline-block;">
-              <img src="${player.avatar_url || '/logo.png'}" alt="${player.name}" style="width: clamp(150px, 40vw, 200px); height: clamp(150px, 40vw, 200px); border-radius: 16px; object-fit: cover; border: 3px solid #10b981; margin: 0 auto 16px auto; display: block;">
+              <img src="${player.avatar_url || '/logo.png'}" alt="${player.name}" style="width: clamp(150px, 40vw, 200px); height: clamp(150px, 40vw, 200px); border-radius: 16px; object-fit: contain; object-position: center; border: 3px solid #10b981; margin: 0 auto 16px auto; display: block; background: #374151;">
               <div style="position: absolute; bottom: 6px; right: -10px; background: #10b981; border-radius: 50%; padding: 6px; cursor: pointer;" onclick="document.getElementById('edit-avatar-mobile').click();">
                 <svg width="16" height="16" fill="white" viewBox="0 0 24 24">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
@@ -993,12 +1015,11 @@ export function PlayerProfiles() {
           <Card key={player.id} className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <div className="flex items-center space-x-4">
-                <Avatar className="h-16 w-16">
+                <Avatar className="h-20 w-20 ring-2 ring-blue-500/20">
                   <AvatarImage 
                     src={player.avatar_url} 
                     alt={player.name}
-                    onLoad={() => console.log('✅ Avatar cargado para:', player.name, player.avatar_url)}
-                    onError={() => console.log('❌ Error cargando avatar para:', player.name, player.avatar_url)}
+                    className="object-contain h-full w-full"
                   />
                   <AvatarFallback className="bg-gradient-to-r from-blue-500 to-green-500 text-white text-lg">
                     {player.name
@@ -1021,11 +1042,20 @@ export function PlayerProfiles() {
               <div className="space-y-2">
                 <div className="flex items-center text-sm text-muted-foreground">
                   <Mail className="h-4 w-4 mr-2" />
-                  {player.email}
+                  <span className="truncate">{player.email}</span>
                 </div>
                 <div className="flex items-center text-sm text-muted-foreground">
                   <Phone className="h-4 w-4 mr-2" />
-                  {player.phone}
+                  <span>{player.phone}</span>
+                  {player.phone && (
+                    <button
+                      onClick={() => openWhatsApp(player.phone, player.name)}
+                      className="ml-2 p-1.5 rounded-full bg-green-500 hover:bg-green-600 transition-colors group"
+                      title="Contactar por WhatsApp"
+                    >
+                      <MessageCircle className="h-3.5 w-3.5 text-white" />
+                    </button>
+                  )}
                 </div>
               </div>
 
