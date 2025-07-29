@@ -16,6 +16,50 @@ export function PlayerProfiles() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  // Add responsive modal styles
+  useEffect(() => {
+    const style = document.createElement('style')
+    style.textContent = `
+      .responsive-modal {
+        width: clamp(320px, 95vw, 800px) !important;
+        max-width: 95vw !important;
+        margin: clamp(10px, 2vh, 20px) auto !important;
+      }
+      .swal-html-container {
+        max-height: 70vh !important;
+        overflow-y: auto !important;
+        padding: 0 !important;
+      }
+      @media (max-width: 640px) {
+        .responsive-modal {
+          margin: 5px auto !important;
+        }
+        .swal2-popup {
+          font-size: 14px !important;
+        }
+        .swal2-title {
+          font-size: 18px !important;
+          padding: 10px !important;
+        }
+        .swal2-actions {
+          flex-direction: column !important;
+          gap: 8px !important;
+        }
+        .swal2-confirm, .swal2-cancel {
+          width: 100% !important;
+          margin: 0 !important;
+          padding: 12px 16px !important;
+          font-size: 14px !important;
+        }
+      }
+    `
+    document.head.appendChild(style)
+    
+    return () => {
+      document.head.removeChild(style)
+    }
+  }, [])
+
   // Cargar jugadores desde Supabase
   useEffect(() => {
     loadPlayers()
@@ -241,130 +285,308 @@ export function PlayerProfiles() {
 
   const editPlayer = async (player: typeof players[0]) => {
     const { value: formValues } = await Swal.fire({
-      title: `Editar Perfil de ${player.name}`,
+      title: `<span style="color: #10b981; font-size: clamp(16px, 4vw, 20px); font-weight: bold;">✏️ Editar ${player.name}</span>`,
       html: `
-        <div class="player-edit-modal" style="text-align: left; color: #e5e7eb; background: #1f2937; padding: 20px; border-radius: 12px;">
-          <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid #374151;">
-            <img src="/logo.png" alt="${player.name}" style="width: 150px; height: 150px; border-radius: 12px; object-fit: cover; border: 3px solid #10b981;">
-            <div style="flex: 1;">
-              <label style="color: #10b981; font-size: 14px; font-weight: bold; display: block; margin-bottom: 4px;">Nombre Completo *</label>
-              <input id="edit-name" value="${player.name}" style="width: 100%; padding: 8px 12px; background: #374151; border: 1px solid #4b5563; border-radius: 6px; color: #f9fafb; font-size: 16px; margin-bottom: 8px;">
-              <div style="display: flex; align-items: center; gap: 10px; margin: 8px 0;">
-                <span style="background: #10b981; color: white; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold;">#${player.ranking}</span>
-                <span style="color: #9ca3af;">${player.points} puntos</span>
+        <style>
+          @media (max-width: 768px) {
+            .desktop-edit-header { display: none !important; }
+            .mobile-edit-header { display: block !important; }
+            .desktop-edit-grid { display: none !important; }
+            .mobile-edit-grid { display: block !important; }
+            .responsive-edit-form { padding: 12px !important; }
+          }
+          @media (min-width: 769px) {
+            .desktop-edit-header { display: flex !important; }
+            .mobile-edit-header { display: none !important; }
+            .desktop-edit-grid { display: grid !important; }
+            .mobile-edit-grid { display: none !important; }
+          }
+          .responsive-edit-form {
+            padding: clamp(12px, 3vw, 20px);
+            max-width: 100%;
+            overflow-x: hidden;
+            color: #e5e7eb;
+            background: #1f2937;
+            border-radius: 12px;
+          }
+          .responsive-edit-form .form-section {
+            margin-bottom: clamp(16px, 4vw, 24px);
+            background: #374151;
+            padding: clamp(12px, 3vw, 16px);
+            border-radius: 8px;
+          }
+          .responsive-edit-form .section-title {
+            color: #10b981;
+            font-size: clamp(14px, 3vw, 16px);
+            font-weight: bold;
+            margin-bottom: clamp(8px, 2vw, 12px);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+          .responsive-edit-form .form-group {
+            margin-bottom: clamp(12px, 3vw, 16px);
+          }
+          .responsive-edit-form .form-label {
+            display: block;
+            font-size: clamp(11px, 2.2vw, 12px);
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+          .responsive-edit-form .form-input {
+            width: 100%;
+            padding: clamp(8px, 2vw, 12px);
+            border: 1px solid #4b5563;
+            border-radius: 6px;
+            font-size: clamp(14px, 3vw, 16px);
+            background: #1f2937;
+            color: #f9fafb;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+          }
+          .responsive-edit-form .form-input:focus {
+            border-color: #10b981;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+          }
+          .responsive-edit-form .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: clamp(8px, 2vw, 16px);
+            text-align: center;
+          }
+          @media (min-width: 640px) {
+            .responsive-edit-form .stats-grid {
+              grid-template-columns: repeat(4, 1fr);
+            }
+          }
+          .responsive-edit-form .stat-card {
+            background: #1f2937;
+            padding: clamp(8px, 2vw, 12px);
+            border-radius: 6px;
+            border: 1px solid #4b5563;
+          }
+          .responsive-edit-form .stat-value {
+            font-size: clamp(16px, 4vw, 24px);
+            font-weight: bold;
+            margin-bottom: 2px;
+          }
+          .responsive-edit-form .stat-label {
+            font-size: clamp(10px, 2vw, 12px);
+            color: #9ca3af;
+          }
+          .responsive-edit-form .wins { color: #10b981; }
+          .responsive-edit-form .losses { color: #ef4444; }
+          .responsive-edit-form .winrate { color: #f59e0b; }
+          .responsive-edit-form .matches { color: #8b5cf6; }
+          .responsive-edit-form .badge {
+            background: #10b981;
+            color: white;
+            padding: clamp(4px, 1vw, 8px) clamp(8px, 2vw, 16px);
+            border-radius: 8px;
+            font-size: clamp(12px, 3vw, 16px);
+            font-weight: bold;
+            margin-right: 16px;
+          }
+          .responsive-edit-form .points {
+            color: #9ca3af;
+            font-size: clamp(14px, 3.5vw, 18px);
+          }
+        </style>
+        <div class="responsive-edit-form">
+          <!-- Desktop Layout -->
+          <div class="desktop-edit-header" style="display: flex; align-items: flex-start; gap: 32px; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid #374151;">
+            <img src="/logo.png" alt="${player.name}" style="width: clamp(200px, 25vw, 300px); height: clamp(200px, 25vw, 300px); border-radius: 16px; object-fit: cover; border: 4px solid #10b981; flex-shrink: 0;">
+            <div style="flex: 1; padding-top: 20px;">
+              <div class="form-group">
+                <label class="form-label">👤 Nombre Completo *</label>
+                <input id="edit-name" value="${player.name}" class="form-input" required style="font-size: clamp(18px, 4vw, 24px); font-weight: bold; margin-bottom: 16px;">
               </div>
+              <div style="display: flex; align-items: center; gap: 16px; margin: 16px 0; flex-wrap: wrap;">
+                <span class="badge">#${player.ranking || 'N/A'}</span>
+                <span class="points">${player.points || 0} puntos</span>
+              </div>
+              <p style="margin: 16px 0 0 0; color: #9ca3af; font-size: clamp(14px, 3vw, 16px);"><strong>Miembro desde:</strong> ${player.joinDate ? new Date(player.joinDate).toLocaleDateString('es-ES') : 'N/A'}</p>
+              <p style="margin: 8px 0 0 0; color: #9ca3af; font-size: clamp(14px, 3vw, 16px);"><strong>Último partido:</strong> ${player.lastMatch || 'N/A'}</p>
             </div>
           </div>
           
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
-            <div>
-              <h4 style="color: #10b981; margin: 0 0 12px 0; font-size: 16px; font-weight: bold;">📧 Información de Contacto</h4>
-              <div style="background: #374151; padding: 16px; border-radius: 8px; space-y: 12px;">
-                <div style="margin-bottom: 12px;">
-                  <label style="color: #9ca3af; font-size: 12px; font-weight: bold; display: block; margin-bottom: 4px;">EMAIL</label>
-                  <input id="edit-email" value="${player.email}" type="email" style="width: 100%; padding: 8px 12px; background: #1f2937; border: 1px solid #4b5563; border-radius: 6px; color: #f9fafb;">
-                </div>
-                <div>
-                  <label style="color: #9ca3af; font-size: 12px; font-weight: bold; display: block; margin-bottom: 4px;">TELÉFONO</label>
-                  <input id="edit-phone" value="${player.phone}" style="width: 100%; padding: 8px 12px; background: #1f2937; border: 1px solid #4b5563; border-radius: 6px; color: #f9fafb;">
-                </div>
+          <!-- Mobile Layout -->
+          <div class="mobile-edit-header" style="display: none; text-align: center; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid #374151;">
+            <img src="/logo.png" alt="${player.name}" style="width: clamp(150px, 40vw, 200px); height: clamp(150px, 40vw, 200px); border-radius: 16px; object-fit: cover; border: 3px solid #10b981; margin: 0 auto 16px auto; display: block;">
+            <div class="form-group">
+              <label class="form-label">👤 Nombre Completo *</label>
+              <input id="edit-name-mobile" value="${player.name}" class="form-input" required style="font-size: clamp(18px, 5vw, 24px); font-weight: bold; text-align: center;">
+            </div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin: 12px 0; flex-wrap: wrap;">
+              <span class="badge">#${player.ranking || 'N/A'}</span>
+              <span class="points">${player.points || 0} puntos</span>
+            </div>
+            <p style="margin: 12px 0 0 0; color: #9ca3af; font-size: clamp(12px, 3vw, 14px);"><strong>Miembro desde:</strong> ${player.joinDate ? new Date(player.joinDate).toLocaleDateString('es-ES') : 'N/A'}</p>
+            <p style="margin: 6px 0 0 0; color: #9ca3af; font-size: clamp(12px, 3vw, 14px);"><strong>Último partido:</strong> ${player.lastMatch || 'N/A'}</p>
+          </div>
+          
+          <!-- Desktop Grid -->
+          <div class="desktop-edit-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+            <div class="form-section">
+              <div class="section-title">📧 Información de Contacto</div>
+              <div class="form-group">
+                <label class="form-label">Email</label>
+                <input id="edit-email" value="${player.email}" type="email" class="form-input" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Teléfono</label>
+                <input id="edit-phone" value="${player.phone}" type="tel" class="form-input" required>
               </div>
             </div>
             
-            <div>
-              <h4 style="color: #10b981; margin: 0 0 12px 0; font-size: 16px; font-weight: bold;">🎾 Estilo de Juego</h4>
-              <div style="background: #374151; padding: 16px; border-radius: 8px;">
-                <div style="margin-bottom: 12px;">
-                  <label style="color: #9ca3af; font-size: 12px; font-weight: bold; display: block; margin-bottom: 4px;">ESTILO</label>
-                  <select id="edit-style" style="width: 100%; padding: 8px 12px; background: #1f2937; border: 1px solid #4b5563; border-radius: 6px; color: #f9fafb;">
-                    <option value="Agresivo" ${player.playingStyle === 'Agresivo' ? 'selected' : ''}>Agresivo</option>
-                    <option value="Defensivo" ${player.playingStyle === 'Defensivo' ? 'selected' : ''}>Defensivo</option>
-                    <option value="Completo" ${player.playingStyle === 'Completo' ? 'selected' : ''}>Completo</option>
-                    <option value="Red" ${player.playingStyle === 'Red' ? 'selected' : ''}>Red</option>
-                    <option value="Consistente" ${player.playingStyle === 'Consistente' ? 'selected' : ''}>Consistente</option>
-                    <option value="Táctico" ${player.playingStyle === 'Táctico' ? 'selected' : ''}>Táctico</option>
-                    <option value="POING" ${player.playingStyle === 'POING' ? 'selected' : ''}>POING</option>
-                  </select>
-                </div>
-                <div>
-                  <label style="color: #9ca3af; font-size: 12px; font-weight: bold; display: block; margin-bottom: 4px;">GOLPE FAVORITO</label>
-                  <select id="edit-shot" style="width: 100%; padding: 8px 12px; background: #1f2937; border: 1px solid #4b5563; border-radius: 6px; color: #f9fafb;">
-                    <option value="Derecha" ${player.favoriteShot === 'Derecha' ? 'selected' : ''}>Derecha</option>
-                    <option value="Revés" ${player.favoriteShot === 'Revés' ? 'selected' : ''}>Revés</option>
-                    <option value="Saque" ${player.favoriteShot === 'Saque' ? 'selected' : ''}>Saque</option>
-                    <option value="Volea" ${player.favoriteShot === 'Volea' ? 'selected' : ''}>Volea</option>
-                    <option value="Smash" ${player.favoriteShot === 'Smash' ? 'selected' : ''}>Smash</option>
-                    <option value="Drop Shot" ${player.favoriteShot === 'Drop Shot' ? 'selected' : ''}>Drop Shot</option>
-                    <option value="GLOBO" ${player.favoriteShot === 'GLOBO' ? 'selected' : ''}>GLOBO</option>
-                  </select>
-                </div>
+            <div class="form-section">
+              <div class="section-title">🎾 Estilo de Juego</div>
+              <div class="form-group">
+                <label class="form-label">Estilo</label>
+                <select id="edit-style" class="form-input">
+                  <option value="Agresivo" ${player.playingStyle === 'Agresivo' ? 'selected' : ''}>🔥 Agresivo</option>
+                  <option value="Defensivo" ${player.playingStyle === 'Defensivo' ? 'selected' : ''}>🛡️ Defensivo</option>
+                  <option value="Completo" ${player.playingStyle === 'Completo' ? 'selected' : ''}>⭐ Completo</option>
+                  <option value="Red" ${player.playingStyle === 'Red' ? 'selected' : ''}>🥅 Red</option>
+                  <option value="Consistente" ${player.playingStyle === 'Consistente' ? 'selected' : ''}>📈 Consistente</option>
+                  <option value="Táctico" ${player.playingStyle === 'Táctico' ? 'selected' : ''}>🧠 Táctico</option>
+                  <option value="POING" ${player.playingStyle === 'POING' ? 'selected' : ''}>💪 POING</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Golpe Favorito</label>
+                <select id="edit-shot" class="form-input">
+                  <option value="Derecha" ${player.favoriteShot === 'Derecha' ? 'selected' : ''}>➡️ Derecha</option>
+                  <option value="Revés" ${player.favoriteShot === 'Revés' ? 'selected' : ''}>⬅️ Revés</option>
+                  <option value="Saque" ${player.favoriteShot === 'Saque' ? 'selected' : ''}>⬆️ Saque</option>
+                  <option value="Volea" ${player.favoriteShot === 'Volea' ? 'selected' : ''}>🔄 Volea</option>
+                  <option value="Smash" ${player.favoriteShot === 'Smash' ? 'selected' : ''}>💥 Smash</option>
+                  <option value="Drop Shot" ${player.favoriteShot === 'Drop Shot' ? 'selected' : ''}>🎯 Drop Shot</option>
+                  <option value="GLOBO" ${player.favoriteShot === 'GLOBO' ? 'selected' : ''}>🌟 GLOBO</option>
+                </select>
               </div>
             </div>
           </div>
           
-          <div style="margin-bottom: 24px;">
-            <h4 style="color: #10b981; margin: 0 0 12px 0; font-size: 16px; font-weight: bold;">📊 Estadísticas (Solo Lectura)</h4>
-            <div style="background: #374151; padding: 16px; border-radius: 8px;">
-              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; text-align: center;">
-                <div style="background: #1f2937; padding: 12px; border-radius: 6px;">
-                  <div style="font-size: 24px; font-weight: bold; color: #10b981;">${player.wins}</div>
-                  <div style="font-size: 12px; color: #9ca3af;">Victorias</div>
-                </div>
-                <div style="background: #1f2937; padding: 12px; border-radius: 6px;">
-                  <div style="font-size: 24px; font-weight: bold; color: #ef4444;">${player.losses}</div>
-                  <div style="font-size: 12px; color: #9ca3af;">Derrotas</div>
-                </div>
-                <div style="background: #1f2937; padding: 12px; border-radius: 6px;">
-                  <div style="font-size: 24px; font-weight: bold; color: #f59e0b;">${player.winRate.toFixed(1)}%</div>
-                  <div style="font-size: 12px; color: #9ca3af;">% Victoria</div>
-                </div>
-                <div style="background: #1f2937; padding: 12px; border-radius: 6px;">
-                  <div style="font-size: 24px; font-weight: bold; color: #3b82f6;">${player.matches}</div>
-                  <div style="font-size: 12px; color: #9ca3af;">Partidos</div>
-                </div>
+          <!-- Mobile Grid -->
+          <div class="mobile-edit-grid" style="display: none;">
+            <div class="form-section">
+              <div class="section-title">📧 Información de Contacto</div>
+              <div class="form-group">
+                <label class="form-label">Email</label>
+                <input id="edit-email-mobile" value="${player.email}" type="email" class="form-input" required>
               </div>
-              <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #4b5563;">
-                <p style="margin: 0; color: #9ca3af;"><strong>Último partido:</strong> ${player.lastMatch}</p>
-                <p style="margin: 8px 0 0 0; color: #9ca3af;"><strong>Miembro desde:</strong> ${new Date(player.joinDate).toLocaleDateString('es-ES')}</p>
+              <div class="form-group">
+                <label class="form-label">Teléfono</label>
+                <input id="edit-phone-mobile" value="${player.phone}" type="tel" class="form-input" required>
+              </div>
+            </div>
+            
+            <div class="form-section">
+              <div class="section-title">🎾 Estilo de Juego</div>
+              <div class="form-group">
+                <label class="form-label">Estilo</label>
+                <select id="edit-style-mobile" class="form-input">
+                  <option value="Agresivo" ${player.playingStyle === 'Agresivo' ? 'selected' : ''}>🔥 Agresivo</option>
+                  <option value="Defensivo" ${player.playingStyle === 'Defensivo' ? 'selected' : ''}>🛡️ Defensivo</option>
+                  <option value="Completo" ${player.playingStyle === 'Completo' ? 'selected' : ''}>⭐ Completo</option>
+                  <option value="Red" ${player.playingStyle === 'Red' ? 'selected' : ''}>🥅 Red</option>
+                  <option value="Consistente" ${player.playingStyle === 'Consistente' ? 'selected' : ''}>📈 Consistente</option>
+                  <option value="Táctico" ${player.playingStyle === 'Táctico' ? 'selected' : ''}>🧠 Táctico</option>
+                  <option value="POING" ${player.playingStyle === 'POING' ? 'selected' : ''}>💪 POING</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Golpe Favorito</label>
+                <select id="edit-shot-mobile" class="form-input">
+                  <option value="Derecha" ${player.favoriteShot === 'Derecha' ? 'selected' : ''}>➡️ Derecha</option>
+                  <option value="Revés" ${player.favoriteShot === 'Revés' ? 'selected' : ''}>⬅️ Revés</option>
+                  <option value="Saque" ${player.favoriteShot === 'Saque' ? 'selected' : ''}>⬆️ Saque</option>
+                  <option value="Volea" ${player.favoriteShot === 'Volea' ? 'selected' : ''}>🔄 Volea</option>
+                  <option value="Smash" ${player.favoriteShot === 'Smash' ? 'selected' : ''}>💥 Smash</option>
+                  <option value="Drop Shot" ${player.favoriteShot === 'Drop Shot' ? 'selected' : ''}>🎯 Drop Shot</option>
+                  <option value="GLOBO" ${player.favoriteShot === 'GLOBO' ? 'selected' : ''}>🌟 GLOBO</option>
+                </select>
               </div>
             </div>
           </div>
           
-          ${player.achievements.length > 0 ? `
-          <div>
-            <h4 style="color: #10b981; margin: 0 0 12px 0; font-size: 16px; font-weight: bold;">🏆 Logros y Reconocimientos (Solo Lectura)</h4>
-            <div style="background: #374151; padding: 16px; border-radius: 8px;">
-              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                ${player.achievements.map(achievement => `
-                  <span style="background: #065f46; color: #10b981; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold;">
-                    ${achievement}
-                  </span>
-                `).join('')}
+          <div class="form-section">
+            <div class="section-title">📊 Estadísticas (Solo Lectura)</div>
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-value wins">${player.wins || 0}</div>
+                <div class="stat-label">Victorias</div>
               </div>
+              <div class="stat-card">
+                <div class="stat-value losses">${player.losses || 0}</div>
+                <div class="stat-label">Derrotas</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value winrate">${player.winRate?.toFixed(1) || '0.0'}%</div>
+                <div class="stat-label">% Victoria</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value matches">${player.matches || 0}</div>
+                <div class="stat-label">Partidos</div>
+              </div>
+            </div>
+            <div style="margin-top: clamp(12px, 3vw, 16px); padding-top: clamp(12px, 3vw, 16px); border-top: 1px solid #e5e7eb; font-size: clamp(12px, 2.5vw, 14px); color: #6b7280;">
+              <p style="margin: 0;"><strong>Último partido:</strong> ${player.lastMatch || 'N/A'}</p>
+              <p style="margin: clamp(4px, 1vw, 8px) 0 0 0;"><strong>Miembro desde:</strong> ${player.joinDate ? new Date(player.joinDate).toLocaleDateString('es-ES') : 'N/A'}</p>
+            </div>
+          </div>
+          
+          ${(player.achievements && player.achievements.length > 0) ? `
+          <div class="form-section">
+            <div class="section-title">🏆 Logros y Reconocimientos</div>
+            <div style="display: flex; flex-wrap: wrap; gap: clamp(6px, 1.5vw, 8px);">
+              ${player.achievements.map(achievement => `
+                <span style="background: #10b981; color: white; padding: clamp(4px, 1vw, 6px) clamp(8px, 2vw, 12px); border-radius: 20px; font-size: clamp(10px, 2vw, 12px); font-weight: bold;">
+                  ${achievement}
+                </span>
+              `).join('')}
             </div>
           </div>
           ` : ''}
         </div>
       `,
-      confirmButtonText: 'Guardar Cambios',
-      cancelButtonText: 'Cancelar',
+      confirmButtonText: '💾 Guardar Cambios',
+      cancelButtonText: '❌ Cancelar',
       showCancelButton: true,
       confirmButtonColor: '#10b981',
       cancelButtonColor: '#6b7280',
-      width: '900px',
+      width: 'clamp(320px, 95vw, 900px)',
       background: '#1f2937',
       color: '#e5e7eb',
       customClass: {
-        popup: 'dark-modal',
-        title: 'dark-modal-title',
-        htmlContainer: 'dark-modal-content'
+        popup: 'responsive-modal dark-modal',
+        htmlContainer: 'swal-html-container',
+        title: 'dark-modal-title'
       },
       preConfirm: () => {
-        const name = (document.getElementById('edit-name') as HTMLInputElement)?.value
-        const email = (document.getElementById('edit-email') as HTMLInputElement)?.value
-        const phone = (document.getElementById('edit-phone') as HTMLInputElement)?.value
-        const playingStyle = (document.getElementById('edit-style') as HTMLSelectElement)?.value
-        const favoriteShot = (document.getElementById('edit-shot') as HTMLSelectElement)?.value
+        // Detectar si estamos en mobile o desktop basado en qué input está visible
+        const isMobile = window.innerWidth <= 768
+        
+        const name = isMobile 
+          ? (document.getElementById('edit-name-mobile') as HTMLInputElement)?.value
+          : (document.getElementById('edit-name') as HTMLInputElement)?.value
+        const email = isMobile 
+          ? (document.getElementById('edit-email-mobile') as HTMLInputElement)?.value
+          : (document.getElementById('edit-email') as HTMLInputElement)?.value
+        const phone = isMobile 
+          ? (document.getElementById('edit-phone-mobile') as HTMLInputElement)?.value
+          : (document.getElementById('edit-phone') as HTMLInputElement)?.value
+        const playingStyle = isMobile 
+          ? (document.getElementById('edit-style-mobile') as HTMLSelectElement)?.value
+          : (document.getElementById('edit-style') as HTMLSelectElement)?.value
+        const favoriteShot = isMobile 
+          ? (document.getElementById('edit-shot-mobile') as HTMLSelectElement)?.value
+          : (document.getElementById('edit-shot') as HTMLSelectElement)?.value
         
         if (!name || !email || !phone) {
           Swal.showValidationMessage('Por favor complete todos los campos requeridos')
@@ -414,63 +636,163 @@ export function PlayerProfiles() {
 
   const addPlayer = async () => {
     const { value: formValues } = await Swal.fire({
-      title: 'Agregar Nuevo Jugador',
+      title: '<span style="color: #10b981; font-size: clamp(18px, 4vw, 24px); font-weight: bold;">🎾 Agregar Nuevo Jugador</span>',
       html: `
-        <div class="space-y-4 text-left">
-          <div>
-            <label class="block text-sm font-medium mb-1">Nombre Completo *</label>
-            <input id="swal-input1" class="swal2-input" placeholder="Ej: Juan Pérez" style="margin: 0; width: 100%; box-sizing: border-box;">
+        <style>
+          .responsive-add-form {
+            padding: clamp(12px, 3vw, 20px);
+            max-width: 100%;
+            overflow-x: hidden;
+          }
+          .responsive-add-form .form-group {
+            margin-bottom: clamp(12px, 3vw, 16px);
+          }
+          .responsive-add-form label {
+            display: block;
+            font-size: clamp(12px, 2.5vw, 14px);
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #374151;
+            text-align: left;
+          }
+          .responsive-add-form .form-input {
+            width: 100%;
+            padding: clamp(8px, 2vw, 12px);
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: clamp(14px, 3vw, 16px);
+            background: white;
+            color: #111827;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+          }
+          .responsive-add-form .form-input:focus {
+            border-color: #10b981;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+          }
+          .responsive-add-form .form-input::placeholder {
+            color: #9ca3af;
+            font-size: clamp(12px, 2.5vw, 14px);
+          }
+          .responsive-add-form .form-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: clamp(12px, 3vw, 16px);
+          }
+          @media (min-width: 640px) {
+            .responsive-add-form .form-row {
+              grid-template-columns: 1fr 1fr;
+            }
+          }
+          .responsive-add-form .icon-input {
+            position: relative;
+          }
+          .responsive-add-form .icon-input::before {
+            content: attr(data-icon);
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: clamp(14px, 3vw, 16px);
+            color: #10b981;
+            z-index: 1;
+          }
+          .responsive-add-form .icon-input .form-input {
+            padding-left: clamp(35px, 8vw, 40px);
+          }
+        </style>
+        <div class="responsive-add-form">
+          <div class="form-group">
+            <label for="add-name">👤 Nombre Completo *</label>
+            <div class="icon-input" data-icon="🏷️">
+              <input 
+                id="add-name" 
+                class="form-input" 
+                placeholder="Ej: Juan Pérez García" 
+                required
+                autocomplete="name"
+              >
+            </div>
           </div>
-          <div>
-            <label class="block text-sm font-medium mb-1">Email *</label>
-            <input id="swal-input2" type="email" class="swal2-input" placeholder="juan.perez@email.com" style="margin: 0; width: 100%; box-sizing: border-box;">
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="add-email">📧 Email *</label>
+              <div class="icon-input" data-icon="@">
+                <input 
+                  id="add-email" 
+                  type="email" 
+                  class="form-input" 
+                  placeholder="juan.perez@email.com"
+                  required
+                  autocomplete="email"
+                >
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="add-phone">📱 Teléfono *</label>
+              <div class="icon-input" data-icon="📞">
+                <input 
+                  id="add-phone" 
+                  type="tel" 
+                  class="form-input" 
+                  placeholder="+56 9 1234 5678"
+                  required
+                  autocomplete="tel"
+                >
+              </div>
+            </div>
           </div>
-          <div>
-            <label class="block text-sm font-medium mb-1">Teléfono *</label>
-            <input id="swal-input3" class="swal2-input" placeholder="+56 9 1234 5678" style="margin: 0; width: 100%; box-sizing: border-box;">
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-1">Estilo de Juego</label>
-            <select id="swal-input4" class="swal2-input" style="margin: 0; width: 100%; box-sizing: border-box; background-color: white; color: black;">
-              <option value="Agresivo">Agresivo</option>
-              <option value="Defensivo">Defensivo</option>
-              <option value="Completo">Completo</option>
-              <option value="Red">Red</option>
-              <option value="Consistente">Consistente</option>
-              <option value="Táctico">Táctico</option>
-              <option value="POING">POING</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-1">Golpe Favorito</label>
-            <select id="swal-input5" class="swal2-input" style="margin: 0; width: 100%; box-sizing: border-box; background-color: white; color: black;">
-              <option value="Derecha">Derecha</option>
-              <option value="Revés">Revés</option>
-              <option value="Saque">Saque</option>
-              <option value="Volea">Volea</option>
-              <option value="Smash">Smash</option>
-              <option value="Drop Shot">Drop Shot</option>
-              <option value="GLOBO">GLOBO</option>
-            </select>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="add-style">🎯 Estilo de Juego</label>
+              <select id="add-style" class="form-input">
+                <option value="">Seleccionar estilo...</option>
+                <option value="Agresivo">🔥 Agresivo</option>
+                <option value="Defensivo">🛡️ Defensivo</option>
+                <option value="Completo">⭐ Completo</option>
+                <option value="Red">🥅 Red</option>
+                <option value="Consistente">📈 Consistente</option>
+                <option value="Táctico">🧠 Táctico</option>
+                <option value="POING">💪 POING</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="add-shot">🎾 Golpe Favorito</label>
+              <select id="add-shot" class="form-input">
+                <option value="">Seleccionar golpe...</option>
+                <option value="Derecha">➡️ Derecha</option>
+                <option value="Revés">⬅️ Revés</option>
+                <option value="Saque">⬆️ Saque</option>
+                <option value="Volea">🔄 Volea</option>
+                <option value="Smash">💥 Smash</option>
+                <option value="Drop Shot">🎯 Drop Shot</option>
+                <option value="GLOBO">🌟 GLOBO</option>
+              </select>
+            </div>
           </div>
         </div>
       `,
       focusConfirm: false,
-      confirmButtonText: 'Agregar Jugador',
-      cancelButtonText: 'Cancelar',
+      confirmButtonText: '✅ Agregar Jugador',
+      cancelButtonText: '❌ Cancelar',
       showCancelButton: true,
       confirmButtonColor: '#10b981',
       cancelButtonColor: '#ef4444',
       customClass: {
-        popup: 'swal-wide',
+        popup: 'responsive-modal',
         htmlContainer: 'swal-html-container'
       },
       preConfirm: () => {
-        const name = (document.getElementById('swal-input1') as HTMLInputElement)?.value
-        const email = (document.getElementById('swal-input2') as HTMLInputElement)?.value
-        const phone = (document.getElementById('swal-input3') as HTMLInputElement)?.value
-        const playingStyle = (document.getElementById('swal-input4') as HTMLSelectElement)?.value
-        const favoriteShot = (document.getElementById('swal-input5') as HTMLSelectElement)?.value
+        const name = (document.getElementById('add-name') as HTMLInputElement)?.value
+        const email = (document.getElementById('add-email') as HTMLInputElement)?.value
+        const phone = (document.getElementById('add-phone') as HTMLInputElement)?.value
+        const playingStyle = (document.getElementById('add-style') as HTMLSelectElement)?.value
+        const favoriteShot = (document.getElementById('add-shot') as HTMLSelectElement)?.value
         
         if (!name || !email || !phone) {
           Swal.showValidationMessage('Por favor complete todos los campos requeridos')
