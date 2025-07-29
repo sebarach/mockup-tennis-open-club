@@ -9,9 +9,15 @@ export const metadata: Metadata = {
   description: 'Dashboard administrativo para gestión del Tennis Open Club',
   generator: 'v0.dev',
   manifest: '/manifest.json',
-  themeColor: '#10b981',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
 }
+
+export const generateViewport = () => ({
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: '#10b981',
+})
 
 export default function RootLayout({
   children,
