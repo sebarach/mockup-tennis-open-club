@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Trophy, Users, Calendar, TrendingUp, Clock, MapPin } from "lucide-react"
 import { useState, useEffect } from "react"
-import { playersAPI } from "@/lib/supabase"
+import { playersAPI, tournamentsAPI } from "@/lib/supabase"
 
 interface DashboardOverviewProps {
   setActiveView?: (view: string) => void
@@ -10,22 +10,40 @@ interface DashboardOverviewProps {
 
 export function DashboardOverview({ setActiveView }: DashboardOverviewProps) {
   const [playersCount, setPlayersCount] = useState(0)
+  const [tournamentsData, setTournamentsData] = useState({
+    active: 0,
+    completed: 0,
+    total: 0
+  })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const loadPlayersCount = async () => {
+    const loadDashboardData = async () => {
       try {
+        // Cargar jugadores
         const players = await playersAPI.getAll()
         setPlayersCount(players.length)
+
+        // Cargar torneos
+        const tournaments = await tournamentsAPI.getAll()
+        const activeTournaments = tournaments.filter(t => t.status === 'ongoing')
+        const completedTournaments = tournaments.filter(t => t.status === 'completed')
+        
+        setTournamentsData({
+          active: activeTournaments.length,
+          completed: completedTournaments.length,
+          total: tournaments.length
+        })
       } catch (error) {
-        console.error('Error loading players count:', error)
+        console.error('Error loading dashboard data:', error)
         setPlayersCount(0)
+        setTournamentsData({ active: 0, completed: 0, total: 0 })
       } finally {
         setLoading(false)
       }
     }
     
-    loadPlayersCount()
+    loadDashboardData()
   }, [])
   const stats = [
     {
@@ -45,11 +63,21 @@ export function DashboardOverview({ setActiveView }: DashboardOverviewProps) {
       trend: "+12 esta semana",
     },
     {
-      title: "Torneos Activos",
-      value: "3",
-      description: "En progreso",
+      title: "Torneos Activos", 
+      value: loading ? "..." : tournamentsData.active.toString(),
+      description: loading 
+        ? "Cargando..." 
+        : tournamentsData.active === 0 
+          ? "Ninguno en progreso" 
+          : "En progreso",
       icon: Trophy,
-      trend: "2 finalizados",
+      trend: loading 
+        ? "Cargando..." 
+        : tournamentsData.total === 0 
+          ? "¡Crea tu primer torneo!" 
+          : `${tournamentsData.completed} completados • ${tournamentsData.total} total`,
+      clickable: true,
+      onClick: () => setActiveView?.('tournaments')
     },
     {
       title: "Promedio Sets",
