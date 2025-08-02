@@ -42,6 +42,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ```
 
 **⚠️ Importante:**
+
 - [ ] Obtener URL y keys desde el dashboard de Supabase
 - [ ] No commitear `.env.local` al repositorio
 - [ ] Agregar `.env.local` al `.gitignore`
@@ -233,7 +234,7 @@ CREATE POLICY "Players are viewable by everyone" ON players
 CREATE POLICY "Admins can manage all players" ON players
   FOR ALL USING (
     EXISTS (
-      SELECT 1 FROM user_profiles 
+      SELECT 1 FROM user_profiles
       WHERE id = auth.uid() AND role = 'admin'
     )
   );
@@ -248,7 +249,7 @@ CREATE POLICY "Organizers can manage their tournaments" ON tournaments
 CREATE POLICY "Admins can manage all tournaments" ON tournaments
   FOR ALL USING (
     EXISTS (
-      SELECT 1 FROM user_profiles 
+      SELECT 1 FROM user_profiles
       WHERE id = auth.uid() AND role = 'admin'
     )
   );
@@ -260,7 +261,7 @@ CREATE POLICY "Courts are viewable by everyone" ON courts
 CREATE POLICY "Admins can manage courts" ON courts
   FOR ALL USING (
     EXISTS (
-      SELECT 1 FROM user_profiles 
+      SELECT 1 FROM user_profiles
       WHERE id = auth.uid() AND role = 'admin'
     )
   );
@@ -273,7 +274,7 @@ CREATE POLICY "Players can view their matches" ON matches
   FOR SELECT USING (
     player1_id IN (
       SELECT id FROM players WHERE created_by = auth.uid()
-    ) OR 
+    ) OR
     player2_id IN (
       SELECT id FROM players WHERE created_by = auth.uid()
     )
@@ -282,7 +283,7 @@ CREATE POLICY "Players can view their matches" ON matches
 CREATE POLICY "Admins can manage all matches" ON matches
   FOR ALL USING (
     EXISTS (
-      SELECT 1 FROM user_profiles 
+      SELECT 1 FROM user_profiles
       WHERE id = auth.uid() AND role = 'admin'
     )
   );
@@ -330,16 +331,16 @@ npx supabase gen types typescript --project-id YOUR_PROJECT_ID > lib/supabase/da
 ### 5.1 Actualizar `app/layout.tsx`
 
 ```tsx
-import './globals.css'
-import { SupabaseProvider } from '@/providers/SupabaseProvider'
-import { AuthProvider } from '@/providers/AuthProvider'
-import { ThemeProvider } from '@/components/theme-provider'
-import { Toaster } from 'sonner'
+import "./globals.css";
+import { SupabaseProvider } from "@/providers/SupabaseProvider";
+import { AuthProvider } from "@/providers/AuthProvider";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "sonner";
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="es">
@@ -350,8 +351,7 @@ export default function RootLayout({
               attribute="class"
               defaultTheme="system"
               enableSystem
-              disableTransitionOnChange
-            >
+              disableTransitionOnChange>
               {children}
               <Toaster position="top-right" />
             </ThemeProvider>
@@ -359,7 +359,7 @@ export default function RootLayout({
         </SupabaseProvider>
       </body>
     </html>
-  )
+  );
 }
 ```
 
@@ -367,29 +367,29 @@ export default function RootLayout({
 
 ```tsx
 // middleware.ts
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 export async function middleware(req: NextRequest) {
-  const res = NextResponse.next()
-  const supabase = createMiddlewareClient({ req, res })
-  
+  const res = NextResponse.next();
+  const supabase = createMiddlewareClient({ req, res });
+
   const {
     data: { session },
-  } = await supabase.auth.getSession()
+  } = await supabase.auth.getSession();
 
   // Proteger rutas de admin
-  if (req.nextUrl.pathname.startsWith('/admin') && !session) {
-    return NextResponse.redirect(new URL('/login', req.url))
+  if (req.nextUrl.pathname.startsWith("/admin") && !session) {
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  return res
+  return res;
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
-}
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+};
 ```
 
 ---
@@ -400,13 +400,13 @@ export const config = {
 
 ```typescript
 // scripts/migrate-players.ts
-import { createClient } from '@supabase/supabase-js'
-import type { Database } from '@/lib/supabase/database.types'
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/supabase/database.types";
 
 const supabase = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY! // Usar service role para bypass RLS
-)
+);
 
 // Datos mock actuales de tu components/player-profiles.tsx
 const mockPlayers = [
@@ -427,48 +427,46 @@ const mockPlayers = [
     achievements: ["Campeón Copa Fin de Año 2023", "Mejor Racha 2023"],
   },
   // ... resto de jugadores
-]
+];
 
 async function migratePlayers() {
-  console.log('🚀 Iniciando migración de jugadores...')
-  
+  console.log("🚀 Iniciando migración de jugadores...");
+
   for (const player of mockPlayers) {
     try {
-      const { error } = await supabase
-        .from('players')
-        .insert({
-          name: player.name,
-          email: player.email,
-          phone: player.phone,
-          ranking: player.ranking,
-          points: player.points,
-          matches_played: player.matches_played,
-          wins: player.wins,
-          losses: player.losses,
-          win_rate: player.win_rate,
-          join_date: player.join_date,
-          last_match: player.last_match,
-          favorite_shot: player.favorite_shot,
-          playing_style: player.playing_style,
-          achievements: player.achievements,
-          is_active: true
-        })
-      
+      const { error } = await supabase.from("players").insert({
+        name: player.name,
+        email: player.email,
+        phone: player.phone,
+        ranking: player.ranking,
+        points: player.points,
+        matches_played: player.matches_played,
+        wins: player.wins,
+        losses: player.losses,
+        win_rate: player.win_rate,
+        join_date: player.join_date,
+        last_match: player.last_match,
+        favorite_shot: player.favorite_shot,
+        playing_style: player.playing_style,
+        achievements: player.achievements,
+        is_active: true,
+      });
+
       if (error) {
-        console.error(`Error migrando ${player.name}:`, error)
+        console.error(`Error migrando ${player.name}:`, error);
       } else {
-        console.log(`✅ ${player.name} migrado exitosamente`)
+        console.log(`✅ ${player.name} migrado exitosamente`);
       }
     } catch (err) {
-      console.error(`Error inesperado con ${player.name}:`, err)
+      console.error(`Error inesperado con ${player.name}:`, err);
     }
   }
-  
-  console.log('🎉 Migración completada!')
+
+  console.log("🎉 Migración completada!");
 }
 
 // Ejecutar: npx tsx scripts/migrate-players.ts
-migratePlayers()
+migratePlayers();
 ```
 
 ---
@@ -479,37 +477,46 @@ migratePlayers()
 
 ```tsx
 // Reemplazar el estado mock con hooks de Supabase
-import { usePlayers, useCreatePlayer, useUpdatePlayer, useDeletePlayer } from '@/hooks/usePlayers'
+import {
+  usePlayers,
+  useCreatePlayer,
+  useUpdatePlayer,
+  useDeletePlayer,
+} from "@/hooks/usePlayers";
 
 export function PlayerProfiles() {
-  const [searchTerm, setSearchTerm] = useState("")
-  
+  const [searchTerm, setSearchTerm] = useState("");
+
   // Reemplazar useState con hook de Supabase
-  const { data: playersResponse, isLoading, error } = usePlayers({
+  const {
+    data: playersResponse,
+    isLoading,
+    error,
+  } = usePlayers({
     search: searchTerm,
     page: 1,
     limit: 50,
-    sortBy: 'ranking',
-    sortOrder: 'asc'
-  })
-  
+    sortBy: "ranking",
+    sortOrder: "asc",
+  });
+
   const { mutate: createPlayer } = useCreatePlayer({
     onSuccess: () => {
       // Toast de éxito se maneja automáticamente
-    }
-  })
-  
-  const { mutate: updatePlayer } = useUpdatePlayer()
-  
+    },
+  });
+
+  const { mutate: updatePlayer } = useUpdatePlayer();
+
   // Actualizar función addPlayer para usar Supabase
   const addPlayer = async () => {
     const { value: formValues } = await Swal.fire({
       // ... mismo código del modal
       preConfirm: () => {
         // ... mismas validaciones
-        return { name, email, phone, playingStyle, favoriteShot }
-      }
-    })
+        return { name, email, phone, playingStyle, favoriteShot };
+      },
+    });
 
     if (formValues) {
       createPlayer({
@@ -523,11 +530,11 @@ export function PlayerProfiles() {
         wins: 0,
         losses: 0,
         win_rate: 0,
-        achievements: []
-      })
+        achievements: [],
+      });
     }
-  }
-  
+  };
+
   // Actualizar función editPlayer
   const editPlayer = async (player: Player) => {
     // ... mismo código del modal
@@ -539,18 +546,18 @@ export function PlayerProfiles() {
           email: formValues.email,
           phone: formValues.phone,
           playing_style: formValues.playingStyle,
-          favorite_shot: formValues.favoriteShot
-        }
-      })
+          favorite_shot: formValues.favoriteShot,
+        },
+      });
     }
-  }
+  };
 
-  const players = playersResponse?.data || []
-  
+  const players = playersResponse?.data || [];
+
   // Resto del componente igual...
-  if (isLoading) return <div>Cargando jugadores...</div>
-  if (error) return <div>Error cargando jugadores</div>
-  
+  if (isLoading) return <div>Cargando jugadores...</div>;
+  if (error) return <div>Error cargando jugadores</div>;
+
   // ... resto del JSX igual
 }
 ```
@@ -563,33 +570,33 @@ export function PlayerProfiles() {
 
 ```tsx
 // pages/test-supabase.tsx (crear temporalmente)
-import { useSupabaseClient } from '@supabase/auth-helpers-react'
-import { useEffect, useState } from 'react'
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useEffect, useState } from "react";
 
 export default function TestSupabase() {
-  const supabase = useSupabaseClient()
-  const [players, setPlayers] = useState([])
-  const [error, setError] = useState(null)
+  const supabase = useSupabaseClient();
+  const [players, setPlayers] = useState([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     async function testConnection() {
       try {
         const { data, error } = await supabase
-          .from('players')
-          .select('*')
-          .limit(5)
-        
-        if (error) throw error
-        setPlayers(data)
-        console.log('✅ Conexión exitosa:', data)
+          .from("players")
+          .select("*")
+          .limit(5);
+
+        if (error) throw error;
+        setPlayers(data);
+        console.log("✅ Conexión exitosa:", data);
       } catch (err) {
-        setError(err.message)
-        console.error('❌ Error de conexión:', err)
+        setError(err.message);
+        console.error("❌ Error de conexión:", err);
       }
     }
-    
-    testConnection()
-  }, [supabase])
+
+    testConnection();
+  }, [supabase]);
 
   return (
     <div className="p-8">
@@ -597,7 +604,7 @@ export default function TestSupabase() {
       {error && <div className="text-red-500">Error: {error}</div>}
       <pre>{JSON.stringify(players, null, 2)}</pre>
     </div>
-  )
+  );
 }
 ```
 
@@ -609,43 +616,39 @@ const testCRUD = async () => {
   try {
     // CREATE
     const { data: newPlayer } = await supabase
-      .from('players')
-      .insert({ name: 'Test Player', email: 'test@test.com' })
+      .from("players")
+      .insert({ name: "Test Player", email: "test@test.com" })
       .select()
-      .single()
-    
-    console.log('✅ Player created:', newPlayer)
-    
+      .single();
+
+    console.log("✅ Player created:", newPlayer);
+
     // READ
     const { data: players } = await supabase
-      .from('players')
-      .select('*')
-      .eq('email', 'test@test.com')
-    
-    console.log('✅ Players found:', players)
-    
+      .from("players")
+      .select("*")
+      .eq("email", "test@test.com");
+
+    console.log("✅ Players found:", players);
+
     // UPDATE
     const { data: updatedPlayer } = await supabase
-      .from('players')
-      .update({ name: 'Updated Test Player' })
-      .eq('id', newPlayer.id)
+      .from("players")
+      .update({ name: "Updated Test Player" })
+      .eq("id", newPlayer.id)
       .select()
-      .single()
-    
-    console.log('✅ Player updated:', updatedPlayer)
-    
+      .single();
+
+    console.log("✅ Player updated:", updatedPlayer);
+
     // DELETE
-    await supabase
-      .from('players')
-      .delete()
-      .eq('id', newPlayer.id)
-    
-    console.log('✅ Player deleted')
-    
+    await supabase.from("players").delete().eq("id", newPlayer.id);
+
+    console.log("✅ Player deleted");
   } catch (error) {
-    console.error('❌ CRUD Test failed:', error)
+    console.error("❌ CRUD Test failed:", error);
   }
-}
+};
 ```
 
 ---
@@ -664,6 +667,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ### 9.2 Configurar Auth Redirects en Supabase
 
 En Dashboard > Authentication > URL Configuration:
+
 - Site URL: `https://your-domain.com`
 - Redirect URLs: `https://your-domain.com/auth/callback`
 
@@ -703,18 +707,22 @@ npx supabase db dump --data-only > backup.sql
 ## 🆘 Troubleshooting Común
 
 ### Error: "Invalid JWT"
+
 - Verificar que las variables de entorno estén correctas
 - Regenerar las keys en el dashboard de Supabase
 
 ### Error: "Row Level Security"
+
 - Verificar que las políticas RLS estén configuradas
 - Usar service role key para operaciones admin
 
 ### Error: "Network Error"
+
 - Verificar conexión a internet
 - Verificar URL de Supabase
 
 ### Queries Lentas
+
 - Agregar índices necesarios
 - Optimizar queries con .select() específicos
 

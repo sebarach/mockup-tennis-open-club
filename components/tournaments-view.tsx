@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Trophy, Calendar, Users, Award, Plus } from "lucide-react"
+import { Trophy, Calendar, Users, Award, Plus, Pencil, Eye, Info, UserPlus, BarChart3, Network, Settings } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 import { useState, useEffect } from "react"
 import Swal from "sweetalert2"
@@ -1295,6 +1295,353 @@ export function TournamentsView() {
     })
   }
 
+  // Función para formatear fecha para input type="date"
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return ''
+    const date = new Date(dateString)
+    return date.toISOString().split('T')[0]
+  }
+
+  // Función para escapar caracteres especiales en HTML
+  const escapeHtml = (text) => {
+    if (!text) return ''
+    const div = document.createElement('div')
+    div.textContent = text
+    return div.innerHTML
+  }
+
+  // Función para editar torneo
+  const handleEditTournament = async (tournament) => {
+    console.log('Editando torneo:', tournament)
+    console.log('Fechas del torneo:', {
+      start_date: tournament.start_date,
+      end_date: tournament.end_date,
+      registration_deadline: tournament.registration_deadline
+    })
+    const { value: formData } = await Swal.fire({
+      title: '<span style="color: #10b981; font-size: clamp(18px, 4vw, 24px); font-weight: bold;">📝 Editar Torneo</span>',
+      html: `
+        <style>
+          .responsive-edit-form {
+            padding: clamp(12px, 3vw, 20px);
+            max-width: 100%;
+            overflow-x: hidden;
+            color: #e5e7eb;
+            background: #1f2937;
+            border-radius: 12px;
+          }
+          .responsive-edit-form .form-group {
+            margin-bottom: clamp(12px, 3vw, 16px);
+            background: #374151;
+            padding: clamp(12px, 3vw, 16px);
+            border-radius: 8px;
+          }
+          .responsive-edit-form label {
+            display: block;
+            font-size: clamp(12px, 2.5vw, 14px);
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #10b981;
+            text-align: left;
+          }
+          .responsive-edit-form .form-input,
+          .responsive-edit-form .form-textarea,
+          .responsive-edit-form .form-select {
+            width: 100%;
+            padding: clamp(8px, 2vw, 12px);
+            border: 1px solid #4b5563;
+            border-radius: 6px;
+            font-size: clamp(14px, 3vw, 16px);
+            background: #1f2937;
+            color: #f9fafb;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+          }
+          .responsive-edit-form .form-input:focus,
+          .responsive-edit-form .form-textarea:focus,
+          .responsive-edit-form .form-select:focus {
+            border-color: #10b981;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+          }
+          .responsive-edit-form .form-input::placeholder,
+          .responsive-edit-form .form-textarea::placeholder {
+            color: #9ca3af;
+            font-size: clamp(12px, 2.5vw, 14px);
+          }
+          .responsive-edit-form .form-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: clamp(12px, 3vw, 16px);
+            background: transparent;
+            padding: 0;
+            border-radius: 0;
+          }
+          @media (min-width: 640px) {
+            .responsive-edit-form .form-row {
+              grid-template-columns: 1fr 1fr;
+            }
+          }
+          .responsive-edit-form .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+          }
+          .field-readonly {
+            background: #4b5563 !important;
+            cursor: not-allowed;
+            opacity: 0.7;
+          }
+          .readonly-notice {
+            font-size: 11px;
+            color: #9ca3af;
+            font-style: italic;
+            margin-top: 4px;
+          }
+        </style>
+        <div class="responsive-edit-form">
+          <div class="form-group">
+            <label for="edit-name">🎾 Nombre del Torneo *</label>
+            <input 
+              id="edit-name" 
+              class="form-input" 
+              value="${escapeHtml(tournament.name || '')}"
+              required
+            >
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-description">📄 Descripción</label>
+            <textarea 
+              id="edit-description" 
+              class="form-textarea" 
+              rows="3"
+            >${escapeHtml(tournament.description || '')}</textarea>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="edit-startDate">🚀 Fecha de Inicio *</label>
+              <input 
+                id="edit-startDate" 
+                type="date" 
+                class="form-input"
+                value="${formatDateForInput(tournament.start_date)}"
+                required
+              >
+            </div>
+            
+            <div class="form-group">
+              <label for="edit-endDate">🏁 Fecha de Fin *</label>
+              <input 
+                id="edit-endDate" 
+                type="date" 
+                class="form-input"
+                value="${formatDateForInput(tournament.end_date)}"
+                required
+              >
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-registrationDeadline">⏰ Fecha Límite de Inscripción *</label>
+            <input 
+              id="edit-registrationDeadline" 
+              type="date" 
+              class="form-input"
+              value="${formatDateForInput(tournament.registration_deadline)}"
+              required
+            >
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="edit-tournamentType">🎯 Tipo de Torneo</label>
+              <select id="edit-tournamentType" class="form-select field-readonly" disabled>
+                <option value="single_elimination" ${tournament.tournament_type === 'single_elimination' ? 'selected' : ''}>🥊 Eliminación Directa</option>
+                <option value="round_robin" ${tournament.tournament_type === 'round_robin' ? 'selected' : ''}>🔄 Round Robin</option>
+                <option value="swiss" ${tournament.tournament_type === 'swiss' ? 'selected' : ''}>🇨🇭 Sistema Suizo</option>
+              </select>
+              <div class="readonly-notice">⚠️ No se puede cambiar después de crear el torneo</div>
+            </div>
+            
+            <div class="form-group">
+              <label for="edit-maxPlayers">👥 Máximo de Jugadores *</label>
+              <input 
+                id="edit-maxPlayers" 
+                type="number" 
+                class="form-input" 
+                min="2" 
+                max="128" 
+                value="${tournament.max_players || 16}"
+                required
+              >
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="edit-entryFee">💳 Cuota de Inscripción</label>
+              <input 
+                id="edit-entryFee" 
+                type="number" 
+                class="form-input" 
+                min="0" 
+                value="${tournament.entry_fee || 0}"
+              >
+            </div>
+            
+            <div class="form-group">
+              <label for="edit-prizePool">🏆 Premio Total</label>
+              <input 
+                id="edit-prizePool" 
+                type="number" 
+                class="form-input" 
+                min="0" 
+                value="${tournament.prize_pool || 0}"
+              >
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-location">🏢 Ubicación</label>
+            <input 
+              id="edit-location" 
+              class="form-input" 
+              value="${escapeHtml(tournament.location || '')}"
+            >
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-rules">📜 Reglas Específicas</label>
+            <textarea 
+              id="edit-rules" 
+              class="form-textarea" 
+              rows="4"
+            >${escapeHtml(tournament.rules || '')}</textarea>
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: '💾 Guardar Cambios',
+      cancelButtonText: '❌ Cancelar',
+      background: '#1f2937',
+      color: '#f9fafb',
+      confirmButtonColor: '#10b981',
+      cancelButtonColor: '#6b7280',
+      customClass: {
+        popup: 'responsive-modal'
+      },
+      preConfirm: () => {
+        const name = document.getElementById('edit-name').value
+        const description = document.getElementById('edit-description').value
+        const startDate = document.getElementById('edit-startDate').value
+        const endDate = document.getElementById('edit-endDate').value
+        const registrationDeadline = document.getElementById('edit-registrationDeadline').value
+        const maxPlayers = parseInt(document.getElementById('edit-maxPlayers').value)
+        const entryFee = parseFloat(document.getElementById('edit-entryFee').value) || 0
+        const prizePool = parseFloat(document.getElementById('edit-prizePool').value) || 0
+        const location = document.getElementById('edit-location').value
+        const rules = document.getElementById('edit-rules').value
+
+        if (!name || !startDate || !endDate || !registrationDeadline) {
+          Swal.showValidationMessage('Por favor completa todos los campos obligatorios')
+          return false
+        }
+
+        if (new Date(startDate) <= new Date()) {
+          Swal.showValidationMessage('La fecha de inicio debe ser futura')
+          return false
+        }
+
+        if (new Date(endDate) <= new Date(startDate)) {
+          Swal.showValidationMessage('La fecha de fin debe ser posterior a la fecha de inicio')
+          return false
+        }
+
+        if (new Date(registrationDeadline) >= new Date(startDate)) {
+          Swal.showValidationMessage('La fecha límite de inscripción debe ser anterior al inicio')
+          return false
+        }
+
+        if (maxPlayers < 2 || maxPlayers > 128) {
+          Swal.showValidationMessage('El número de jugadores debe estar entre 2 y 128')
+          return false
+        }
+
+        // Validar potencia de 2 para eliminación directa
+        if (tournament.tournament_type === 'single_elimination' && (maxPlayers & (maxPlayers - 1)) !== 0) {
+          Swal.showValidationMessage('Para eliminación directa, el número de jugadores debe ser una potencia de 2 (2, 4, 8, 16, 32, 64, 128)')
+          return false
+        }
+
+        return {
+          name,
+          description,
+          start_date: startDate,
+          end_date: endDate,
+          registration_deadline: registrationDeadline,
+          max_players: maxPlayers,
+          entry_fee: entryFee,
+          prize_pool: prizePool,
+          location,
+          rules
+        }
+      }
+    })
+
+    if (formData) {
+      try {
+        // Actualizar el torneo usando la API
+        await tournamentsAPI.update(tournament.id, formData)
+
+        await Swal.fire({
+          title: '🎉 ¡Éxito!',
+          text: 'Torneo actualizado correctamente',
+          icon: 'success',
+          background: '#1f2937',
+          color: '#f9fafb',
+          confirmButtonColor: '#10b981'
+        })
+
+        // Recargar torneos
+        await loadTournaments()
+
+      } catch (error) {
+        console.error('Error actualizando torneo:', error)
+        
+        let errorMessage = error.message || 'Error desconocido al actualizar el torneo'
+        
+        // Mensajes de error más user-friendly
+        if (errorMessage.includes('No se pueden modificar')) {
+          errorMessage = '⚠️ ' + errorMessage + '\n\n💡 Solo se pueden editar torneos que aún no hayan comenzado.'
+        } else if (errorMessage.includes('Torneo no encontrado')) {
+          errorMessage = '❌ El torneo no fue encontrado.\n\n💡 Es posible que haya sido eliminado por otro usuario.'
+        }
+        
+        Swal.fire({
+          title: '❌ Error al Actualizar Torneo',
+          html: `
+            <div style="text-align: left; padding: 1rem; background: #374151; border-radius: 8px; margin: 1rem 0;">
+              <p style="margin: 0; color: #f9fafb; line-height: 1.5;">${errorMessage}</p>
+            </div>
+            <div style="margin-top: 1rem; padding: 1rem; background: #1e3a8a; border-radius: 8px;">
+              <p style="margin: 0; color: #93c5fd; font-size: 0.9rem;">
+                <strong>📋 Información técnica:</strong><br>
+                Revisa la consola del navegador (F12) para más detalles específicos del error.
+              </p>
+            </div>
+          `,
+          icon: 'error',
+          background: '#1f2937',
+          color: '#f9fafb',
+          confirmButtonText: '🔍 Entendido',
+          confirmButtonColor: '#ef4444',
+          width: '600px'
+        })
+      }
+    }
+  }
+
   // Función para inscribir jugadores al torneo
   const registerPlayersToTournament = async (tournament) => {
     // Cargar todos los jugadores y separar inscritos de disponibles
@@ -1913,22 +2260,26 @@ export function TournamentsView() {
                     <Button 
                       variant="outline" 
                       size="sm"
+                      className="border-indigo-500 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-600 hover:text-indigo-700"
                       onClick={(e) => {
                         e.stopPropagation()
                         console.log('Clickeando Ver Bracket para:', tournament.name)
                         // TODO: Implementar vista de bracket
                       }}
                     >
+                      <Network className="h-4 w-4 mr-2" />
                       Ver Bracket
                     </Button>
                     <Button 
                       size="sm"
+                      className="bg-slate-600 hover:bg-slate-700 text-white"
                       onClick={(e) => {
                         e.stopPropagation()
                         console.log('Clickeando Gestionar para:', tournament.name)
                         // TODO: Implementar gestión de torneo
                       }}
                     >
+                      <Settings className="h-4 w-4 mr-2" />
                       Gestionar
                     </Button>
                     </div>
@@ -1977,20 +2328,36 @@ export function TournamentsView() {
                       <Button 
                         variant="outline" 
                         size="sm" 
+                        className="border-blue-500 text-blue-600 hover:bg-blue-50 hover:border-blue-600 hover:text-blue-700"
                         onClick={() => {
                           console.log('Clickeando Ver Detalles para:', tournament.name)
                           viewTournamentDetails(tournament)
                         }}
                       >
+                        <Eye className="h-4 w-4 mr-2" />
                         Ver Detalles
                       </Button>
                       <Button 
+                        variant="outline" 
                         size="sm" 
+                        className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:border-amber-600 hover:text-amber-700"
+                        onClick={() => {
+                          console.log('Clickeando Editar para:', tournament.name)
+                          handleEditTournament(tournament)
+                        }}
+                      >
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Editar
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        className="bg-green-600 hover:bg-green-700 text-white"
                         onClick={() => {
                           console.log('Clickeando Inscribir Jugadores para:', tournament.name)
                           registerPlayersToTournament(tournament)
                         }}
                       >
+                        <UserPlus className="h-4 w-4 mr-2" />
                         Inscribir Jugadores
                       </Button>
                     </div>
@@ -2034,11 +2401,13 @@ export function TournamentsView() {
                       <Button 
                         variant="outline" 
                         size="sm" 
+                        className="border-purple-500 text-purple-600 hover:bg-purple-50 hover:border-purple-600 hover:text-purple-700"
                         onClick={() => {
                           console.log('Clickeando Ver Resultados para:', tournament.name)
                           viewTournamentDetails(tournament)
                         }}
                       >
+                        <BarChart3 className="h-4 w-4 mr-2" />
                         Ver Resultados
                       </Button>
                     </div>

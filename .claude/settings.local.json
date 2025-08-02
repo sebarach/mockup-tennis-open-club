@@ -1,7 +1,16 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
     "allow": [
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(set SUPABASE_URL=https://mujaroivapqkofghcvcq.supabase.co)",
+      "Bash(set SUPABASE_ACCESS_TOKEN=sbp_17f712b684846568ab89597ba75df4a7ccc5dbf1)",
+      "Bash(npx:*)",
+      "Bash(timeout 10 npx @supabase/mcp-server-supabase@latest --read-only)",
+      "Bash(timeout:*)",
+      "Bash(./test-mcp.bat)",
+      "Bash(cmd /c:*)",
+      "Bash(node:*)"
     ],
     "deny": []
   }

@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Development Commands
 
 - `pnpm dev` - Start development server (Next.js 15)
-- `pnpm build` - Build for production
+- `pnpm build` - Build for production  
 - `pnpm start` - Start production server
 - `pnpm lint` - Run Next.js linting
 
@@ -79,8 +79,10 @@ The dashboard uses a view-switching pattern where these main components render b
 - TypeScript with strict mode enabled and `@/*` path aliases
 - ESLint and TypeScript errors ignored during builds (configured for v0.dev compatibility)
 - Images unoptimized for deployment flexibility
-- Webpack optimizations for CSS chunking and caching
-- Security headers configured in `next.config.mjs`
+- Webpack optimizations for CSS chunking and caching with custom splitChunks configuration
+- Security headers configured in `next.config.mjs` (X-Frame-Options, X-Content-Type-Options)
+- Tailwind CSS with HSL-based custom CSS variables for theming
+- Development optimizations: build activity indicator disabled, custom watch options
 
 ### v0.dev Integration
 This project syncs automatically with v0.dev deployments. Changes made in v0.dev are pushed to this repository and deployed via Vercel.
@@ -282,3 +284,26 @@ The `lib/supabase.js` file contains the storage API functions:
 - Maximum file size: 5MB
 - Supported formats: JPG, PNG, GIF
 - Old avatars are automatically deleted when updating player images
+
+## Key Implementation Patterns
+
+### Error Handling
+All errors are processed through the centralized `handleSupabaseError` function in `lib/supabase/client.ts`. Services add business logic validation on top of repository-level database errors.
+
+### Data Validation
+- React Hook Form with Zod schema validation for forms
+- Business logic validation in service layer (email validation, duplicate checking)
+- TypeScript strict mode for compile-time type safety
+
+### State Management
+- Local React useState for component state (no external state management)
+- View switching controlled by `activeView` state in main `app/page.tsx`
+- Custom hooks (`usePlayers`, `useSupabase`) for data fetching and state
+
+### File Organization
+- `components/ui/` - Shadcn/ui reusable components
+- `components/` - Application-specific view components  
+- `lib/repositories/` - Data access layer with base repository pattern
+- `lib/services/` - Business logic layer
+- `hooks/` - Custom React hooks
+- `providers/` - React context providers (Auth, Supabase)
