@@ -10,7 +10,9 @@
       "Bash(timeout:*)",
       "Bash(./test-mcp.bat)",
       "Bash(cmd /c:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm build:*)"
     ],
     "deny": []
   }

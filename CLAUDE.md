@@ -307,3 +307,22 @@ All errors are processed through the centralized `handleSupabaseError` function 
 - `lib/services/` - Business logic layer
 - `hooks/` - Custom React hooks
 - `providers/` - React context providers (Auth, Supabase)
+
+## Development Guidelines
+
+### Code Quality Requirements
+When making changes to the codebase, always:
+1. Run `pnpm lint` after making changes to ensure code quality
+2. Follow the existing TypeScript patterns and repository architecture
+3. Use the established error handling via `handleSupabaseError`
+4. Maintain consistency with the service layer pattern
+5. Ensure all database operations go through repositories
+6. Validate business logic in service classes before database operations
+
+### Important Development Notes
+- **Package Manager**: This project uses **pnpm** exclusively - never use npm or yarn
+- **File Management**: Always prefer editing existing files over creating new ones
+- **Documentation**: Only create documentation files (*.md) when explicitly requested
+- **Database Changes**: Always use the repository pattern - never direct Supabase client calls in components
+- **View Navigation**: All view switching is controlled by `activeView` state in `app/page.tsx`
+- **Error Handling**: All errors must flow through the centralized `handleSupabaseError` function
